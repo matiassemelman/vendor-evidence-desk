@@ -14,13 +14,16 @@ Vendor Evidence Desk prepares a supplier record from three synthetic documents. 
 |---|---|---|
 | Input | One synthetic allowlisted case; no public uploads or prompts. | [Release limits](../../README.md#limits) |
 | AI | One worker per document, strict output, no tools and no provider retry. | [Evaluation design](../EVALS.md) |
+| Models | GPT-4.1 mini handles bounded extraction; GPT-5.5 is reserved for the calibrated offline judge. | [Model routing](../MODEL_ROUTING.md) |
 | Authority | AI proposes, deterministic code routes and only a person approves. | [Build process](../BUILD_PROCESS.md) |
 | Change | A changed document creates a successor; reuse requires exact input and model identity. | [Release contract](../../README.md#engineering-choices) |
 | Evidence | Five focused tests and five live evals protect visible claims without implying scale. | [Evaluation design](../EVALS.md) |
 
 ## Cost model
 
-The release records token usage per completed live run; five synthetic cases do not establish a representative production cost.
+The three-worker product path uses GPT-4.1 mini and measured US$0.001752 per case in the verified suite: 95.2% below the prior all-GPT-5.5 baseline.
+GPT-5.5 is reserved for one calibrated offline judge batch. The full five-case suite measured US$0.063389: 73.8% below baseline.
+Token-derived release estimates are regression evidence, not a representative production-cost claim.
 
 ## Deep dives
 
@@ -88,7 +91,7 @@ The release records token usage per completed live run; five synthetic cases do 
 
 **What it does.** Workers cannot see the full case, call tools, approve, route or export. Their only job is to return eight field slots with local candidates and exact excerpts.
 
-**How it's built.** `lib/ai/worker.ts` uses OpenAI Responses with strict JSON Schema and `maxRetries: 0`; `lib/ai/run.ts` runs the three workers concurrently.
+**How it's built.** `lib/ai/worker.ts` uses GPT-4.1 mini through OpenAI Responses with strict JSON Schema and `maxRetries: 0`; `lib/ai/run.ts` runs the three workers concurrently.
 
 **Steps in execution.**
 
@@ -219,7 +222,7 @@ The release records token usage per completed live run; five synthetic cases do 
 
 **What it does.** The judge receives reduced outputs and human-labeled positive and negative anchors. Anchor failure invalidates the judge batch.
 
-**How it's built.** The judge call in `evals/run.ts` uses strict output, one batch and calibrated anchors; deterministic route assertions remain primary.
+**How it's built.** The GPT-5.5 judge call in `evals/run.ts` uses strict output, one batch and calibrated anchors; deterministic route assertions remain primary.
 
 **Steps in execution.**
 

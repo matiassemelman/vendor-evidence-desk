@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { ApprovalReceipt, CaseRevision, Packet } from "@/lib/domain/case";
+import ArchitectureDock from "./architecture-dock";
 
 type Scenario = "clean" | "bank_conflict" | "adversarial";
 type Run = { revision: CaseRevision; analysisCapability: string; persisted: boolean; supersededRevision?: CaseRevision; trace: { source: "live" | "replay"; attempt: string; latencyMs: number; actualOutboundAttempts: number; model?: string; usage?: { input: number; output: number; total: number } } };
@@ -44,5 +45,6 @@ export default function Desk({ packet }: { packet: Packet }) {
       </>}
     </section>}
     <footer><p>Three proposals. One deterministic reducer. One accountable human decision.</p><a href="https://github.com/matiassemelman/vendor-evidence-desk" rel="noreferrer">Inspect the source ↗</a></footer>
+    <ArchitectureDock completed={Boolean(run)} />
   </main>;
 }

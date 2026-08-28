@@ -2,7 +2,7 @@
 
 Watch three document analyzers prepare an evidence-backed vendor record, preserve consequential conflicts, and stop for an accountable human decision.
 
-[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Follow the architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) · [Read the evaluation design](docs/EVALS.md)
+[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Follow the architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) · [Read the evaluation design](docs/EVALS.md) · [Inspect model routing](docs/MODEL_ROUTING.md)
 
 This compact AI/full-stack case study accepts one synthetic, allowlisted supplier packet—not uploads or user prompts. One bounded analyzer processes each document in parallel. A deterministic reducer validates exact excerpts, merges equivalent values, and keeps the `4421` / `9921` bank conflict unresolved.
 
@@ -36,10 +36,11 @@ On 2026-08-28:
 
 - 5/5 deterministic tests passed; lint, typecheck and production build passed.
 - 5/5 live eval routes and calibrated judge verdicts passed; all 15 document analyzers completed live.
-- Requested model `gpt-5.5` returned the required snapshot `gpt-5.5-2026-04-23`; both identities are part of reuse eligibility.
+- Extraction requested `gpt-4.1-mini` and received `gpt-4.1-mini-2025-04-14`; the independently calibrated judge remained on `gpt-5.5-2026-04-23`.
+- Measured model cost fell 95.2% for the three-worker product path and 73.8% for the full eval suite versus the verified all-`gpt-5.5` baseline.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
 - Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
-- The tracked product implementation contains 1,352 non-empty executable/config lines under a 1,450-line hard ceiling; generated architecture documentation is counted separately.
+- The tracked product implementation contains 1,400 non-empty executable/config lines under a 1,450-line hard ceiling; generated architecture documentation is counted separately.
 
 ## Engineering choices
 
@@ -50,8 +51,9 @@ On 2026-08-28:
 - One Next.js Route Handler keeps credentials server-side.
 - One PostgreSQL table stores immutable revision payloads, current/superseded validity and idempotent receipts.
 - Exactly five tests protect the high-value authority boundaries; five live evals are regression evidence, not an accuracy claim.
+- Model capacity follows the role: the cheapest enabled model that passed extraction owns high-volume work; the stronger model is reserved for the one offline judge batch.
 
-See the [evaluation design](docs/EVALS.md) and [human–AI build process](docs/BUILD_PROCESS.md). All companies, people, identifiers, addresses and bank details are fictional.
+See the [evaluation design](docs/EVALS.md), [model-routing decision](docs/MODEL_ROUTING.md) and [human–AI build process](docs/BUILD_PROCESS.md). All companies, people, identifiers, addresses and bank details are fictional.
 
 ## Technical review path
 
