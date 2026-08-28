@@ -55,4 +55,4 @@ See the [evaluation design](docs/EVALS.md) and [human–AI build process](docs/B
 
 ## Limits
 
-One known English document shape, no OCR, no authentication, no arbitrary uploads, no real ERP, and no claim of scale or customer adoption. Public cost protection uses a platform rate limit plus an OpenAI project hard spend cap.
+One known English document shape, no OCR, no authentication, no arbitrary uploads, no real ERP, and no claim of scale or customer adoption. The platform rate-limit rule was verified but is intentionally disabled during owner testing; the OpenAI project hard spend cap remains active.
