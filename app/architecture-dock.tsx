@@ -2,11 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function ArchitectureDock({ completed, busy }: { completed: boolean; busy: boolean }) {
-  const [expanded, setExpanded] = useState(false), [open, setOpen] = useState(false), [mounted, setMounted] = useState(false), [contextual, setContextual] = useState(false);
+  const [expanded, setExpanded] = useState(true), [open, setOpen] = useState(false), [mounted, setMounted] = useState(false), [contextual, setContextual] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const reveal = setTimeout(() => setExpanded(!localStorage.getItem("ved-atlas-seen"))); return () => clearTimeout(reveal);
-  }, []);
   useEffect(() => {
     if (!completed || sessionStorage.getItem("ved-atlas-after-run")) return;
     sessionStorage.setItem("ved-atlas-after-run", "1");
@@ -18,9 +15,9 @@ export default function ArchitectureDock({ completed, busy }: { completed: boole
     const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { setOpen(false); requestAnimationFrame(() => trigger.current?.focus()); } };
     addEventListener("keydown", escape); return () => { document.body.style.overflow = ""; removeEventListener("keydown", escape); };
   }, [open]);
-  const show = () => { localStorage.setItem("ved-atlas-seen", "1"); setMounted(true); setOpen(true); setExpanded(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".atlas-layer nav button")?.focus()); };
+  const show = () => { setMounted(true); setOpen(true); setExpanded(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".atlas-layer nav button")?.focus()); };
   const hide = () => { setOpen(false); requestAnimationFrame(() => trigger.current?.focus()); };
-  const minimize = () => { localStorage.setItem("ved-atlas-seen", "1"); setExpanded(false); };
+  const minimize = () => setExpanded(false);
   return <>
     <aside className={`atlas-dock ${expanded ? "expanded" : ""}`} aria-label="Architecture walkthrough">
       <button ref={trigger} onClick={show} aria-expanded={open}><b>{contextual ? "Run Atlas" : "System Atlas"}</b>{expanded && <span>{contextual ? "You just saw this architecture run." : "See how AI, rules and human review divide authority."}<em>Explore architecture · 3 min →</em></span>}</button>

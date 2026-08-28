@@ -40,7 +40,7 @@ On 2026-08-28:
 - Measured model cost fell 95.2% for the three-worker product path and 73.8% for the full eval suite versus the verified all-`gpt-5.5` baseline.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
 - Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
-- The tracked product implementation contains 1,450 non-empty executable/config lines at its hard review ceiling; generated architecture documentation is counted separately.
+- The tracked product implementation contains 1,447 non-empty executable/config lines under its 1,450-line hard review ceiling; generated architecture documentation is counted separately.
 
 ## Engineering choices
 
