@@ -25,7 +25,7 @@ pnpm verify       # lint, types, 5 tests, production build
 pnpm eval         # 5 live cases + calibrated LLM judge; requires API key
 ```
 
-Latest verified live run: 5/5 deterministic routes and 5/5 calibrated judge verdicts passed with `gpt-5.5` on 2026-08-27. See [evaluation design and results](docs/EVALS.md).
+Latest verification: 5/5 deterministic routes and 5/5 calibrated judge verdicts passed with `gpt-5.5`; two repeated approved exports produced one Neon row on 2026-08-27. See [evaluation design and results](docs/EVALS.md).
 
 ## Engineering choices
 
