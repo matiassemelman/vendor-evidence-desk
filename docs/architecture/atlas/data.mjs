@@ -137,9 +137,9 @@ export const NODES = [
     id: "H", code: "H", name: "Human review", short: "HUMAN GATE", group: "authority",
     gx: 13.5, gy: 10, w: 2.5, d: 2.5, h: 46, kind: "gate",
     one: "A person resolves the bank conflict and supplies an accountable reason.",
-    what: "The reviewer can choose only a grounded candidate. Blocked cases and unsupported values never become approvable through this surface.",
+    what: "The reviewer can choose only a grounded candidate. The gate begins neutral: no candidate or reason is prefilled, and blocked or unsupported values never become approvable.",
     how: "A signed HMAC capability binds <code>revisionId</code>, <code>lineageId</code> and <code>decisionDigest</code>; <code>app/api/case/route.ts</code> validates it before approval.",
-    steps: [["Review", "Compare grounded bank candidates and their sources."], ["Select", "Choose one candidate already present in evidence."], ["Explain", "Record a 12–500 character reason."], ["Bind", "Attach the decision to the exact signed revision."]],
+    steps: [["Review", "Compare always-visible candidates, excerpts and sources."], ["Select", "Explicitly choose one grounded candidate; there is no default."], ["Explain", "Write a 12–500 character reason; there is no prefill."], ["Bind", "Attach the decision to the exact signed revision."]],
     cond: [{ q: "Can the AI approve or silently resolve the conflict?", r: "No. The model has no approval path; only the explicit reviewer command can bind a decision (2026-08-28)." }],
   },
   {
@@ -246,7 +246,7 @@ export const CH = [
   {
     id: "human", title: "Consequence stops at a person", reveal: ["H"],
     lede: "The 4421 / 9921 conflict is not silently resolved by source order or confidence.",
-    story: "<p>A reviewer selects one grounded candidate and records why. A signed capability binds that decision to the exact analysis, making <mark>human authority explicit and narrow</mark>.</p>",
+    story: "<p>The gate starts neutral. A reviewer compares visible evidence, explicitly selects one grounded candidate and records why. A signed capability binds that decision to the exact analysis, making <mark>human authority explicit and narrow</mark>.</p>",
     flow: [["R", "H", "bank conflict", { representative: true, candidates: ["4421", "9921"] }], ["H", "U", "decision captured", { representative: true, reasonRequired: true }]],
   },
   {

@@ -39,7 +39,7 @@ On 2026-08-28:
 - Extraction requested `gpt-4.1-mini` and received `gpt-4.1-mini-2025-04-14`; the independently calibrated judge remained on `gpt-5.5-2026-04-23`.
 - Measured model cost fell 95.2% for the three-worker product path and 73.8% for the full eval suite versus the verified all-`gpt-5.5` baseline.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
-- Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
+- Production UX QA confirmed event-backed intermediate states, always-visible decision evidence, a neutral human gate, approval/export and zero horizontal overflow at desktop and 390 px.
 - The tracked product implementation contains 1,447 non-empty executable/config lines under its 1,450-line hard review ceiling; generated architecture documentation is counted separately.
 
 ## Engineering choices

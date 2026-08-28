@@ -144,15 +144,15 @@ Token-derived release estimates are regression evidence, not a representative pr
 
 **In one line.** A person resolves the bank conflict and supplies an accountable reason.
 
-**What it does.** The reviewer can choose only a grounded candidate. Blocked cases and unsupported values never become approvable through this surface.
+**What it does.** The reviewer can choose only a grounded candidate. The gate begins neutral: no candidate or reason is prefilled, and blocked or unsupported values never become approvable.
 
 **How it's built.** A signed HMAC capability binds `revisionId`, `lineageId` and `decisionDigest`; `app/api/case/route.ts` validates it before approval.
 
 **Steps in execution.**
 
-1. **Review** — Compare grounded bank candidates and their sources.
-2. **Select** — Choose one candidate already present in evidence.
-3. **Explain** — Record a 12–500 character reason.
+1. **Review** — Compare always-visible candidates, excerpts and sources.
+2. **Select** — Explicitly choose one grounded candidate; there is no default.
+3. **Explain** — Write a 12–500 character reason; there is no prefill.
 4. **Bind** — Attach the decision to the exact signed revision.
 
 **Questions.**
@@ -302,7 +302,7 @@ Reference by ID. ✓ resolved (with date) · otherwise open.
 
 **We own:** Allowlisted inputs, evidence verification, deterministic routing, human authority, revision identity, selective reuse, receipts and evaluation semantics.
 
-## Planned filesystem
+## Repository map
 
 ```
 app/desk.tsx                 guided reviewer surface

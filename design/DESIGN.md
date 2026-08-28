@@ -1,8 +1,8 @@
 ---
 surface: app
 case: Vendor Evidence Desk Case Lab
-status: implementation-approved
-source: current-ui + owner feedback + primary-reference research
+status: verified-release
+source: production-qa + owner feedback + primary-reference research
 last_updated: 2026-08-28
 ---
 
@@ -38,8 +38,11 @@ last_updated: 2026-08-28
 - Pending nodes show only `queued`, `running`, `completed`, `reused` or `failed` from real events.
 - The reducer cannot appear active before all three workers are terminal.
 - After completion, show the pressure-test verdict before the full record.
-- For `needs_review`, place the unresolved evidence and human form together; collapse seven resolved fields behind progressive disclosure.
+- For `needs_review`, place both unresolved candidates, their exact excerpts and the human form together.
+- Begin with no candidate selected and no reason prefilled; enable approval only after an explicit choice and a valid 12–500 character reason.
+- Keep the complete eight-field record collapsed as secondary audit evidence until the reviewer opens it.
 - Keep `Inspect execution` and the complete grounded record available as secondary evidence.
+- Present System Atlas on every full page load; it may minimize during a run but must remain discoverable.
 - Desktop and 390 px mobile must preserve selector → run → verdict → decision order without horizontal overflow.
 
 ## Copy And Claims
@@ -58,14 +61,14 @@ last_updated: 2026-08-28
 - Do not stream chain-of-thought, raw structured-output tokens or arbitrary provider text.
 - Do not add dependencies, another service, uploads, prompts or a generalized workflow framework.
 
-## Delivery Plan And Acceptance
+## Verified Delivery And Acceptance
 
-1. Add a small server-owned progress event contract around the existing parallel workers and reducer.
-2. Read the streamed events in the current client and render the Theater from the first accepted request.
-3. Turn the scenario card into the persistent evaluation contract.
-4. Add an evidence-safe verdict and exception-first human decision; retain complete record and trace as disclosure.
-5. Verify five tests, five eval cases, build, line ceiling, desktop/mobile screenshots and the deployed live journey.
+- One server-owned NDJSON contract drives the parallel workers, reducer and final Theater; no fake progress is rendered.
+- Each scenario remains visible as a pressure-test contract through request, verdict and decision.
+- The hostile scenario demonstrates two separate outcomes: the injected instruction gains no authority, while the grounded bank conflict still stops at a person.
+- The human gate starts neutral, keeps decisive evidence visible and binds the explicit choice and reason to one revision.
+- The five tests, five live evals, production build, 1,450-line ceiling and deployed desktop/390 px journeys passed on 2026-08-28.
 
-Acceptance: the page feels like one continuous run; every visible progress claim is backed by an event; the hostile scenario explains both the passed authority boundary and the still-pending bank decision; no release claim exceeds observed evidence.
+Acceptance: the page reads as one continuous, inspectable run; every progress claim is event-backed; no release claim exceeds observed evidence.
 
 [source: Matias-2026-08-28, verified; `docs/research/ai-product-ux-patterns-2026-08-28.md`, direct/inferred]
