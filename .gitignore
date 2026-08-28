@@ -7,3 +7,4 @@ coverage/
 evals/latest-report.json
 *.tsbuildinfo
 .vercel
+.omx/

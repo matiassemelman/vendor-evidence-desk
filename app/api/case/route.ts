@@ -51,6 +51,17 @@ const approve = (revision: CaseRevision, selected: unknown, reason: unknown) => 
   const bank = revision.result.extraction.fields.find((field) => field.name === "bank_account_last4")!;
   if (!bank.candidates.some((candidate) => candidate.value === selected)) throw new Error("A supported selection and review reason are required");
 };
+const streamAnalysis = (scenario: Scenario, packet: Packet) => {
+  const encoder = new TextEncoder();
+  return new Response(new ReadableStream({ async start(controller) {
+    const send = (message: object) => controller.enqueue(encoder.encode(`${JSON.stringify(message)}\n`));
+    try {
+      const run = await extract(packet, [], undefined, (data) => send({ kind: "progress", data })), revision = revisionFrom(run, packet, scenario, randomUUID(), null), persisted = await insertRevision(revision);
+      send({ kind: "result", data: { ...run, revision, analysisCapability: sign({ version: 1, revisionId: revision.revisionId, lineageId: revision.lineageId, decisionDigest: revision.decisionDigest }), persisted } });
+    } catch (error) { send({ kind: "error", error: error instanceof Error ? error.message : "Request failed" }); }
+    finally { controller.close(); }
+  } }), { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-cache, no-transform", "x-accel-buffering": "no" } });
+};
 
 export async function POST(request: Request) {
   try {
@@ -61,7 +72,9 @@ export async function POST(request: Request) {
       const command = body as Record<string, unknown>;
       if (command.caseId !== CASE_ID) throw new Error("Case is not allowlisted");
       if (exact(command, ["action", "caseId", "scenario"])) {
-        const scenario = command.scenario as Scenario, packet = packetFor(scenario), run = await extract(packet), revision = revisionFrom(run, packet, scenario, randomUUID(), null), persisted = await insertRevision(revision);
+        const scenario = command.scenario as Scenario, packet = packetFor(scenario);
+        if (request.headers.get("accept") === "application/x-ndjson") return streamAnalysis(scenario, packet);
+        const run = await extract(packet), revision = revisionFrom(run, packet, scenario, randomUUID(), null), persisted = await insertRevision(revision);
         return Response.json({ ...run, revision, analysisCapability: sign({ version: 1, revisionId: revision.revisionId, lineageId: revision.lineageId, decisionDigest: revision.decisionDigest }), persisted });
       }
       if (exact(command, ["action", "caseId", "analysisCapability", "documentChange"])) {

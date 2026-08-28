@@ -45,6 +45,11 @@ export type AnalysisEvent = {
   type: "input_selected" | "workers_dispatched" | "worker_terminal" | "reducer_completed";
   source: "server" | "live" | "replay"; at: string; facts: Record<string, unknown>;
 };
+export type RunProgress = {
+  type: "input_selected" | "workers_dispatched" | "worker_started" | "worker_terminal" | "reducer_started" | "reducer_completed";
+  source: "server" | "live" | "replay"; at: string;
+  documentId?: string; status?: "running" | "completed" | "reused" | "failed"; detail?: string;
+};
 export type LifecycleFacts = {
   validity: "current" | "superseded" | "legacy";
   supersededAt?: string;

@@ -2,11 +2,11 @@
 
 Watch three document analyzers prepare an evidence-backed vendor record, preserve consequential conflicts, and stop for an accountable human decision.
 
-[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Follow the architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) · [Read the evaluation design](docs/EVALS.md) · [Inspect model routing](docs/MODEL_ROUTING.md)
+[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Follow the architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) · [Read the evaluation design](docs/EVALS.md) · [Inspect model routing](docs/MODEL_ROUTING.md) · [See the UX contract](design/DESIGN.md)
 
 This compact AI/full-stack case study accepts one synthetic, allowlisted supplier packet—not uploads or user prompts. One bounded analyzer processes each document in parallel. A deterministic reducer validates exact excerpts, merges equivalent values, and keeps the `4421` / `9921` bank conflict unresolved.
 
-The Case Lab exposes the completed execution as a fork-and-join trace. A reviewer can inspect each worker, its exact source input, token usage and evidence; approve only a grounded candidate; then change the invoice and see two unchanged workers reused while one runs again. The prior approval remains historical and the successor becomes the only current revision.
+The Case Lab presents each scenario as a pressure-test contract, then streams server-owned fork-and-join events into the same Theater that preserves the completed trace. A reviewer sees real worker terminals—not simulated progress—before the deterministic verdict leads directly to the unresolved evidence and human decision. The full grounded record and architecture remain available as progressive disclosure.
 
 ![Vendor Evidence Desk product overview](docs/product-overview.png)
 
@@ -40,12 +40,13 @@ On 2026-08-28:
 - Measured model cost fell 95.2% for the three-worker product path and 73.8% for the full eval suite versus the verified all-`gpt-5.5` baseline.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
 - Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
-- The tracked product implementation contains 1,400 non-empty executable/config lines under a 1,450-line hard ceiling; generated architecture documentation is counted separately.
+- The tracked product implementation contains 1,450 non-empty executable/config lines at its hard review ceiling; generated architecture documentation is counted separately.
 
 ## Engineering choices
 
 - OpenAI Responses API with strict JSON Schema; documents are untrusted data and analyzers receive no tools.
 - Three document-local workers run concurrently; one deterministic reducer owns validation and routing.
+- A compact NDJSON stream exposes only server-owned lifecycle events; it never emits chain-of-thought or fabricated progress.
 - HMAC capabilities bind lineage, exact revision and decision digest before approval or selective reanalysis.
 - A successor recomputes only the changed document; unchanged workers are reused only when their input and effective model identities match.
 - One Next.js Route Handler keeps credentials server-side.

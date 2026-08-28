@@ -6,7 +6,7 @@
 4. I stopped it, kept the product contract and fixtures, and rebuilt from zero under a hard line budget.
 5. For each material area we checked at most two primary references, then chose the smallest practice that strengthened the visible claim.
 6. The compact release uses three document-local analyzers, one deterministic reducer, one human gate, one revision table, five tests and five live evals.
-7. Completed-run Theater shows real provider facts and event order; it deliberately avoids fake progress or simulated streaming.
+7. The Case Lab streams only server-owned worker/reducer lifecycle events into the Theater; it never exposes chain-of-thought or fabricates progress.
 8. A reviewer can change one document and observe two reused workers plus one live rerun, without erasing the prior approval.
 9. One architecture, security and code review—followed by at most one corrective batch—prevents review-driven scope inflation.
 10. I remain responsible for scope, credentials, spend, deployment and every public claim; commits, tests, eval reports, DB rehearsals and the live journey are the evidence.

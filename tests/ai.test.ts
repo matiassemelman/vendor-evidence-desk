@@ -18,9 +18,9 @@ const initialEnv = {
   live: process.env.LIVE_AI_ENABLED,
   model: process.env.OPENAI_MODEL,
 };
-const request = (body: object) => new Request("http://local/api/case", {
+const request = (body: object, stream = false) => new Request("http://local/api/case", {
   method: "POST",
-  headers: { "content-type": "application/json" },
+  headers: { "content-type": "application/json", ...(stream ? { accept: "application/x-ndjson" } : {}) },
   body: JSON.stringify(body),
 });
 const replayMode = () => {
@@ -67,6 +67,12 @@ describe("AI evidence handling", () => {
       request({ action: "analyze", padding: "x".repeat(5000) }),
     );
     expect(oversized.status).toBe(400);
+    replayMode();
+    const streamed = await POST(request({ action: "analyze", caseId: CASE_ID, scenario: "adversarial" }, true));
+    const messages = (await streamed.text()).trim().split("\n").map((line) => JSON.parse(line));
+    expect(messages.filter((item) => item.data?.type === "worker_started")).toHaveLength(3);
+    expect(messages.filter((item) => item.data?.type === "worker_terminal")).toHaveLength(3);
+    expect(messages.at(-1)).toMatchObject({ kind: "result", data: { route: "needs_review" } });
   });
 
   it("derives cache identity and decision digest from exact effective inputs", async () => {

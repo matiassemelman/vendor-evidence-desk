@@ -1,7 +1,7 @@
 import {
   FIELD_NAMES, digest, inputHash,
   type AnalysisEvent, type EffectiveModel, type Inspection, type Packet,
-  type WorkerResult,
+  type RunProgress, type WorkerResult,
 } from "../domain/case";
 import { reduce } from "../domain/evidence";
 import {
@@ -55,24 +55,36 @@ export async function extract(
   packet: Packet,
   previous: WorkerResult[] = [],
   analyze = liveWorker,
+  report?: (event: RunProgress) => void,
 ): Promise<Run> {
   const started = Date.now();
   const live = Boolean(
     process.env.OPENAI_API_KEY && process.env.LIVE_AI_ENABLED === "1",
   );
   const model = live ? LIVE_EFFECTIVE_MODEL : REPLAY_MODEL;
+  const source = live ? "live" as const : "replay" as const;
+  const emit = (event: Omit<RunProgress, "at">) => report?.({ ...event, at: new Date().toISOString() });
   if (live && process.env.OPENAI_MODEL !== LIVE_MODEL) {
     throw new Error("OPENAI_MODEL must be the exact release snapshot");
   }
 
+  emit({ type: "input_selected", source });
+  emit({ type: "workers_dispatched", source, detail: `${packet.documents.length} document-local workers` });
   const prior = new Map(previous.map((worker) => [worker.documentId, worker]));
-  const tasks = packet.documents.map((document) => {
+  const tasks = packet.documents.map(async (document) => {
     const cached = prior.get(document.id);
-    if (canReuse(cached, document, model)) return reuseWorker(cached!);
-    return live ? analyze(document) : replayWorker(packet, document);
+    emit({ type: "worker_started", source, documentId: document.id, status: "running" });
+    try {
+      const worker = canReuse(cached, document, model) ? reuseWorker(cached!) : live ? await analyze(document) : replayWorker(packet, document);
+      const totals = proposalTotals([worker]);
+      emit({ type: "worker_terminal", source: worker.source, documentId: document.id, status: worker.terminal, detail: `${totals.candidates} candidates · ${totals.evidence} excerpts` });
+      return worker;
+    } catch (error) { emit({ type: "worker_terminal", source, documentId: document.id, status: "failed", detail: error instanceof Error ? error.message : "Worker failed" }); throw error; }
   });
   const workers = await Promise.all(tasks);
+  emit({ type: "reducer_started", source: "server", status: "running" });
   const result = reduce(packet, workers);
+  emit({ type: "reducer_completed", source: "server", status: "completed", detail: result.route });
   const outboundAttempts = workers.reduce(
     (total, worker) => total + worker.outboundAttempts,
     0,
@@ -85,7 +97,6 @@ export async function extract(
     })),
     result,
   });
-  const source = live ? "live" as const : "replay" as const;
   const at = new Date().toISOString();
   const analysisEvents: Omit<AnalysisEvent, "revisionId">[] = [
     {

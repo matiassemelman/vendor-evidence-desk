@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-export default function ArchitectureDock({ completed }: { completed: boolean }) {
+export default function ArchitectureDock({ completed, busy }: { completed: boolean; busy: boolean }) {
   const [expanded, setExpanded] = useState(false), [open, setOpen] = useState(false), [mounted, setMounted] = useState(false), [contextual, setContextual] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -10,9 +10,9 @@ export default function ArchitectureDock({ completed }: { completed: boolean }) 
   useEffect(() => {
     if (!completed || sessionStorage.getItem("ved-atlas-after-run")) return;
     sessionStorage.setItem("ved-atlas-after-run", "1");
-    const reveal = setTimeout(() => { setContextual(true); setExpanded(true); });
-    return () => clearTimeout(reveal);
+    const reveal = setTimeout(() => { setContextual(true); setExpanded(false); }); return () => clearTimeout(reveal);
   }, [completed]);
+  useEffect(() => { if (!busy) return; const hide = setTimeout(() => setExpanded(false)); return () => clearTimeout(hide); }, [busy]);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { setOpen(false); requestAnimationFrame(() => trigger.current?.focus()); } };
@@ -23,7 +23,7 @@ export default function ArchitectureDock({ completed }: { completed: boolean }) 
   const minimize = () => { localStorage.setItem("ved-atlas-seen", "1"); setExpanded(false); };
   return <>
     <aside className={`atlas-dock ${expanded ? "expanded" : ""}`} aria-label="Architecture walkthrough">
-      <button ref={trigger} onClick={show} aria-expanded={open}><b>System Atlas</b>{expanded && <span>{contextual ? "You just saw this architecture run." : "See how AI, rules and human review divide authority."}<em>Explore architecture · 3 min →</em></span>}</button>
+      <button ref={trigger} onClick={show} aria-expanded={open}><b>{contextual ? "Run Atlas" : "System Atlas"}</b>{expanded && <span>{contextual ? "You just saw this architecture run." : "See how AI, rules and human review divide authority."}<em>Explore architecture · 3 min →</em></span>}</button>
       {expanded && <button className="dock-minimize" onClick={minimize} aria-label="Minimize architecture invitation">×</button>}
     </aside>
     {mounted && <section className="atlas-layer" hidden={!open} role="dialog" aria-modal="true" aria-label="System Atlas architecture walkthrough">
