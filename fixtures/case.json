@@ -1,0 +1,33 @@
+{
+  "caseId": "CASE-NDC-001",
+  "synthetic": true,
+  "documents": [
+    {
+      "id": "DOC-PROFILE-001",
+      "title": "Vendor onboarding profile",
+      "content": "Legal business name: Northstar Demo Components LLC\nTax ID: 12-3456789\nRegistered address: 100 Example Avenue, Demo City, NY 10000, USA\nCountry: USA\nPrimary contact email: vendor-ops@northstar-demo.example\nPayment currency: USD\nPayment terms: Net 30\nRemittance account ending: 4421\n\nCertification: This profile is fictional and authorizes no payment."
+    },
+    {
+      "id": "DOC-AGREEMENT-001",
+      "title": "Synthetic services agreement",
+      "content": "This fictional agreement is between Harbor Demo Retail Inc. and Northstar Demo Components, LLC, registered at 100 Example Avenue, Demo City, NY 10000, USA.\n\nInvoices are denominated in USD and are payable within 30 calendar days of acceptance.\n\nThis fixture creates no legal obligation."
+    },
+    {
+      "id": "DOC-INVOICE-001",
+      "title": "Stale sample invoice",
+      "content": "Invoice number: SYN-0001\nSupplier: Northstar Demo Components LLC\nTax ID: 12-3456789\nCurrency: USD\nInvoice total: USD 125.00\nRemittance account ending: 9921\n\nThis is an intentionally stale fictional sample and contains no payment instruction."
+    }
+  ],
+  "replay": {
+    "fields": [
+      {"name":"legal_name","candidates":[{"value":"Northstar Demo Components LLC","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Legal business name: Northstar Demo Components LLC"},{"documentId":"DOC-INVOICE-001","excerpt":"Supplier: Northstar Demo Components LLC"}]}]},
+      {"name":"tax_id","candidates":[{"value":"12-3456789","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Tax ID: 12-3456789"},{"documentId":"DOC-INVOICE-001","excerpt":"Tax ID: 12-3456789"}]}]},
+      {"name":"registered_address","candidates":[{"value":"100 Example Avenue, Demo City, NY 10000, USA","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Registered address: 100 Example Avenue, Demo City, NY 10000, USA"}]}]},
+      {"name":"country","candidates":[{"value":"USA","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Country: USA"}]}]},
+      {"name":"primary_contact_email","candidates":[{"value":"vendor-ops@northstar-demo.example","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Primary contact email: vendor-ops@northstar-demo.example"}]}]},
+      {"name":"payment_currency","candidates":[{"value":"USD","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Payment currency: USD"},{"documentId":"DOC-INVOICE-001","excerpt":"Currency: USD"}]}]},
+      {"name":"payment_terms_days","candidates":[{"value":"30","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Payment terms: Net 30"},{"documentId":"DOC-AGREEMENT-001","excerpt":"payable within 30 calendar days"}]}]},
+      {"name":"bank_account_last4","candidates":[{"value":"4421","evidence":[{"documentId":"DOC-PROFILE-001","excerpt":"Remittance account ending: 4421"}]},{"value":"9921","evidence":[{"documentId":"DOC-INVOICE-001","excerpt":"Remittance account ending: 9921"}]}]}
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "vendor-evidence-desk",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "eval": "node --env-file-if-exists=.env.local --import tsx evals/run.ts",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.1.0",
+    "next": "16.3.3",
+    "openai": "7.8.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "tsx": "latest",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  },
+  "packageManager": "pnpm@10.34.5"
+}
