@@ -39,7 +39,7 @@ On 2026-08-28:
 - Requested model `gpt-5.5` returned the required snapshot `gpt-5.5-2026-04-23`; both identities are part of reuse eligibility.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
 - Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
-- The tracked implementation contains 1,286 non-empty executable/config lines under a 1,450-line hard ceiling.
+- The tracked implementation contains 1,340 non-empty executable/config lines under a 1,450-line hard ceiling.
 
 ## Engineering choices
 
@@ -57,9 +57,9 @@ See the [evaluation design](docs/EVALS.md) and [human–AI build process](docs/B
 
 The shortest code review is four stops:
 
-1. [`lib/ai.ts`](lib/ai.ts) — strict output contract, parallel document workers, selective reuse and an inspectable run trace.
-2. [`lib/case.ts`](lib/case.ts) — untrusted-output validation, evidence grounding, deterministic conflict routing and reduction.
-3. [`tests/case.test.ts`](tests/case.test.ts) — five authority-boundary regressions covering the complete local product path.
+1. [`lib/ai/worker.ts`](lib/ai/worker.ts) → [`run.ts`](lib/ai/run.ts) — strict output, one document worker, parallel orchestration, selective reuse and trace.
+2. [`lib/domain/case.ts`](lib/domain/case.ts) → [`evidence.ts`](lib/domain/evidence.ts) — identity, untrusted-output validation, grounding and deterministic routing.
+3. [`tests/ai.test.ts`](tests/ai.test.ts) + [`revisions.test.ts`](tests/revisions.test.ts) — five authority-boundary regressions over AI and revision behavior.
 4. [`evals/run.ts`](evals/run.ts) — five live cases plus an independently calibrated LLM judge.
 
 ## Limits

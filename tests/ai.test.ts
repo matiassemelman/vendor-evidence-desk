@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import OpenAI from "openai";
 import packetJson from "../fixtures/case.json";
-import { extract, liveWorker, LIVE_MODEL, OPENAI_CLIENT_OPTIONS } from "../lib/ai";
+import { extract } from "../lib/ai/run";
+import { LIVE_MODEL, liveWorker, OPENAI_CLIENT_OPTIONS } from "../lib/ai/worker";
 import {
-  CASE_ID, WORKER_CONTRACT, inputHash, inspect, readWorker, workerInputHash,
-  type EffectiveModel, type Packet, type WorkerResult,
-} from "../lib/case";
-import { getRevision } from "../lib/db";
+  CASE_ID, WORKER_CONTRACT, inputHash, type EffectiveModel, type Packet,
+  type WorkerResult, workerInputHash,
+} from "../lib/domain/case";
+import { inspect, readWorker } from "../lib/domain/evidence";
 import { POST } from "../app/api/case/route";
 
 const packet = packetJson as Packet;
@@ -20,8 +21,6 @@ const request = (body: object) => new Request("http://local/api/case", {
   headers: { "content-type": "application/json" },
   body: JSON.stringify(body),
 });
-const analyze = async (body: object) =>
-  (await POST(request({ action: "analyze", caseId: CASE_ID, ...body }))).json();
 const replayMode = () => {
   delete process.env.OPENAI_API_KEY;
   process.env.LIVE_AI_ENABLED = "0";
@@ -37,7 +36,7 @@ afterEach(() => {
   restoreEnv("OPENAI_MODEL", initialEnv.model);
 });
 
-describe("revision-bound evidence desk", () => {
+describe("AI evidence handling", () => {
   it("rejects unsupported commands and untrusted worker evidence", async () => {
     const omitted = structuredClone(packet.replay);
     omitted.fields.at(-1)!.candidates.pop();
@@ -187,80 +186,5 @@ describe("revision-bound evidence desk", () => {
     );
     expect(failures.every((item) => item.status === "rejected")).toBe(true);
     expect(transport).toHaveBeenCalledTimes(3);
-  });
-
-  it("allows one same-parent successor and isolates anonymous lineages", async () => {
-    replayMode();
-    const first = await analyze({ scenario: "bank_conflict" });
-    const command = {
-      action: "analyze",
-      caseId: CASE_ID,
-      analysisCapability: first.analysisCapability,
-      documentChange: {
-        documentId: "DOC-INVOICE-001", variant: "align_profile",
-      },
-    };
-    const contenders = await Promise.all([
-      POST(request(command)),
-      POST(request(command)),
-    ]);
-    expect(contenders.map((item) => item.status).sort()).toEqual([200, 409]);
-
-    const staleApproval = await POST(request({
-      action: "approve_and_export",
-      analysisCapability: first.analysisCapability,
-      selected: "4421",
-      reason: "The profile is the current authoritative source.",
-    }));
-    expect(staleApproval.status).toBe(409);
-    const other = await analyze({ scenario: "clean" });
-    expect(other.revision.lineageId).not.toBe(first.revision.lineageId);
-    expect(
-      (await getRevision(other.revision.revisionId))?.lifecycle.validity,
-    ).toBe("current");
-  });
-
-  it("persists immutable approval and an idempotent export receipt by revision", async () => {
-    replayMode();
-    const first = await analyze({ scenario: "bank_conflict" });
-    const approval = {
-      action: "approve_and_export",
-      analysisCapability: first.analysisCapability,
-      selected: "4421",
-      reason: "The profile is the current authoritative source.",
-    };
-    expect((await POST(
-      request({ ...approval, reason: "x".repeat(501) }),
-    )).status).toBe(400);
-
-    const saved = await (await POST(request(approval))).json();
-    const repeated = await (await POST(request(approval))).json();
-    expect(repeated).toMatchObject({
-      approvalReceipt: saved.approvalReceipt, repeated: true,
-    });
-    const child = await analyze({
-      analysisCapability: first.analysisCapability,
-      documentChange: {
-        documentId: "DOC-INVOICE-001", variant: "align_profile",
-      },
-    });
-
-    const historical = await (await POST(request(approval))).json();
-    expect(historical.approvalReceipt).toEqual(saved.approvalReceipt);
-    const changedDecision = await POST(request({
-      ...approval,
-      reason: "A different decision must never overwrite history.",
-    }));
-    expect(changedDecision.status).toBe(409);
-    expect(await getRevision(first.revision.revisionId)).toMatchObject({
-      lifecycle: {
-        validity: "superseded",
-        approval: { receiptId: saved.approvalReceipt.receiptId },
-      },
-    });
-    expect(await getRevision(child.revision.revisionId)).toMatchObject({
-      parentRevisionId: first.revision.revisionId,
-      lifecycle: { validity: "current" },
-    });
   });
 });

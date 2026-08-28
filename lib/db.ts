@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import type { ApprovalReceipt, CaseRevision, LifecycleFacts } from "./case";
+import type { ApprovalReceipt, CaseRevision, LifecycleFacts } from "./domain/case";
 
 const local = new Map<string, CaseRevision>();
 const connection = () => { if (!process.env.DATABASE_URL) return null; const db = neon(process.env.DATABASE_URL), schema = process.env.DATABASE_SCHEMA; if (schema && !/^ved_release_[a-z0-9_]{8,40}$/.test(schema)) throw new Error("Invalid database schema"); return { db, table: db.unsafe(schema ? `"${schema}".case_revisions` : "case_revisions") }; };

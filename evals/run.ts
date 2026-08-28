@@ -2,8 +2,8 @@ import { writeFile } from "node:fs/promises";
 import OpenAI from "openai";
 import baseJson from "../fixtures/case.json";
 import suite from "./cases.json";
-import { extract } from "../lib/ai";
-import { type Packet } from "../lib/case";
+import { extract } from "../lib/ai/run";
+import { type Packet } from "../lib/domain/case";
 
 if (!process.env.OPENAI_API_KEY || process.env.LIVE_AI_ENABLED !== "1") {
   throw new Error(

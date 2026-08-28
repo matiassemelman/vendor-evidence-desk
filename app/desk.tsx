@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { ApprovalReceipt, CaseRevision, Packet } from "@/lib/case";
+import type { ApprovalReceipt, CaseRevision, Packet } from "@/lib/domain/case";
 
 type Scenario = "clean" | "bank_conflict" | "adversarial";
 type Run = { revision: CaseRevision; analysisCapability: string; persisted: boolean; supersededRevision?: CaseRevision; trace: { source: "live" | "replay"; attempt: string; latencyMs: number; actualOutboundAttempts: number; model?: string; usage?: { input: number; output: number; total: number } } };

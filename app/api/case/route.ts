@@ -1,7 +1,13 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import packetJson from "../../../fixtures/case.json";
-import { extract } from "../../../lib/ai";
-import { CASE_ID, type ApprovalReceipt, type CaseRevision, type Inspection, type Packet } from "../../../lib/case";
+import { extract } from "../../../lib/ai/run";
+import {
+  CASE_ID,
+  type ApprovalReceipt,
+  type CaseRevision,
+  type Inspection,
+  type Packet,
+} from "../../../lib/domain/case";
 import { approveAndExport, createSuccessor, getRevision, insertRevision } from "../../../lib/db";
 
 export const runtime = "nodejs";
