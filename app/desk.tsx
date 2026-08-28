@@ -53,7 +53,7 @@ export default function Desk({ packet }: { packet: Packet }) {
           <p className="eyebrow">Vendor onboarding · evidence desk</p>
           <h1>Let AI prepare the case.<br/><em>Keep judgment human.</em></h1>
           <p className="lede">Three supplier documents disagree on a bank account. The system extracts evidence, refuses to hide the conflict, and exports only after a reasoned human decision.</p>
-          <button onClick={analyze} disabled={busy}>{busy ? "Running bounded extraction…" : run ? "Run the case again" : "Run the guided case"}</button>
+          <button onClick={analyze} disabled={busy}>{busy ? "Running bounded extraction…" : "Run evidence check"}</button>
         </div>
         <aside><p className="aside-title">Authority map</p><ol>
           <li><b>Model</b><span>Proposes fields + excerpts</span></li>
