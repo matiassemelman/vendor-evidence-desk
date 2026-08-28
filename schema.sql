@@ -1,5 +1,27 @@
-create table if not exists approved_cases (
-  case_id text primary key check (case_id = 'CASE-NDC-001'),
-  record jsonb not null,
-  approved_at timestamptz not null default now()
+-- One-table cutover. Run on an isolated copy first; legacy stays history-only.
+do $$ begin
+  if to_regclass('public.approved_cases') is not null and to_regclass('public.case_revisions') is null then alter table approved_cases rename to case_revisions; end if;
+end $$;
+create table if not exists case_revisions (
+  revision_id text primary key, case_id text not null check (case_id = 'CASE-NDC-001'), lineage_id text not null, parent_revision_id text,
+  input_hash text, decision_digest text, analysis jsonb, lifecycle jsonb not null default '{"validity":"current"}'::jsonb,
+  approval_receipt jsonb, export_receipt jsonb, legacy_record jsonb, source text not null default 'analysis', current_state text not null default 'current', created_at timestamptz not null default now(),
+  constraint case_revisions_source check (source in ('analysis','legacy')), constraint case_revisions_state check (current_state in ('current','superseded','legacy')),
+  constraint case_revisions_lifecycle check (lifecycle->>'validity' = current_state), constraint case_revisions_receipts check ((approval_receipt is null) = (export_receipt is null)),
+  constraint case_revisions_payload check ((source='legacy' and analysis is null and input_hash is null and decision_digest is null and current_state='legacy') or (source='analysis' and analysis is not null and input_hash is not null and decision_digest is not null)),
+  unique (lineage_id, revision_id), foreign key (lineage_id, parent_revision_id) references case_revisions(lineage_id, revision_id)
 );
+do $$ declare key_name text; begin
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='case_revisions' and column_name='record') then alter table case_revisions rename column record to legacy_record; end if;
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='case_revisions' and column_name='approved_at') then alter table case_revisions rename column approved_at to created_at; end if;
+  alter table case_revisions add column if not exists revision_id text, add column if not exists lineage_id text, add column if not exists parent_revision_id text, add column if not exists input_hash text, add column if not exists decision_digest text, add column if not exists analysis jsonb, add column if not exists lifecycle jsonb, add column if not exists approval_receipt jsonb, add column if not exists export_receipt jsonb, add column if not exists legacy_record jsonb, add column if not exists source text, add column if not exists current_state text, add column if not exists created_at timestamptz;
+  update case_revisions set revision_id=coalesce(revision_id,'legacy-'||md5(coalesce(case_id,'CASE-NDC-001')||coalesce(created_at::text,'legacy'))), lineage_id=coalesce(lineage_id,'legacy-'||md5(coalesce(case_id,'CASE-NDC-001'))), case_id=coalesce(case_id,'CASE-NDC-001'), lifecycle='{"validity":"legacy"}'::jsonb, source='legacy', current_state='legacy', input_hash=null, decision_digest=null, analysis=null, approval_receipt=null, export_receipt=null where revision_id is null or source is null;
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='case_revisions' and column_name='legacy_record') then alter table case_revisions alter column legacy_record drop not null; end if;
+  for key_name in select conname from pg_constraint where conrelid='public.case_revisions'::regclass and contype='p' loop execute format('alter table case_revisions drop constraint %I',key_name); end loop;
+  alter table case_revisions alter column revision_id set not null, alter column case_id set not null, alter column lineage_id set not null, alter column lifecycle set not null, alter column source set not null, alter column current_state set not null, alter column created_at set not null;
+  if not exists (select 1 from pg_constraint where conrelid='public.case_revisions'::regclass and conname='case_revisions_pkey') then alter table case_revisions add constraint case_revisions_pkey primary key(revision_id); end if;
+  if not exists (select 1 from pg_constraint where conrelid='public.case_revisions'::regclass and conname='case_revisions_lineage_revision_key') then alter table case_revisions add constraint case_revisions_lineage_revision_key unique(lineage_id,revision_id); end if;
+  if not exists (select 1 from pg_constraint where conrelid='public.case_revisions'::regclass and conname='case_revisions_parent_fkey') then alter table case_revisions add constraint case_revisions_parent_fkey foreign key(lineage_id,parent_revision_id) references case_revisions(lineage_id,revision_id); end if;
+  if not exists (select 1 from pg_constraint where conrelid='public.case_revisions'::regclass and conname='case_revisions_source') then alter table case_revisions add constraint case_revisions_source check(source in ('analysis','legacy')), add constraint case_revisions_state check(current_state in ('current','superseded','legacy')), add constraint case_revisions_lifecycle check(lifecycle->>'validity'=current_state), add constraint case_revisions_receipts check((approval_receipt is null)=(export_receipt is null)), add constraint case_revisions_payload check((source='legacy' and analysis is null and input_hash is null and decision_digest is null and current_state='legacy') or (source='analysis' and analysis is not null and input_hash is not null and decision_digest is not null)); end if;
+end $$;
+create unique index if not exists case_revisions_one_current_per_lineage on case_revisions(lineage_id) where current_state='current';
