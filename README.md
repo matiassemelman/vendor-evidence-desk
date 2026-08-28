@@ -2,7 +2,7 @@
 
 Watch three document analyzers prepare an evidence-backed vendor record, preserve consequential conflicts, and stop for an accountable human decision.
 
-[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Read the evaluation design](docs/EVALS.md)
+[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Follow the architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) · [Read the evaluation design](docs/EVALS.md)
 
 This compact AI/full-stack case study accepts one synthetic, allowlisted supplier packet—not uploads or user prompts. One bounded analyzer processes each document in parallel. A deterministic reducer validates exact excerpts, merges equivalent values, and keeps the `4421` / `9921` bank conflict unresolved.
 
@@ -39,7 +39,7 @@ On 2026-08-28:
 - Requested model `gpt-5.5` returned the required snapshot `gpt-5.5-2026-04-23`; both identities are part of reuse eligibility.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
 - Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
-- The tracked implementation contains 1,340 non-empty executable/config lines under a 1,450-line hard ceiling.
+- The tracked product implementation contains 1,352 non-empty executable/config lines under a 1,450-line hard ceiling; generated architecture documentation is counted separately.
 
 ## Engineering choices
 
@@ -61,6 +61,8 @@ The shortest code review is four stops:
 2. [`lib/domain/case.ts`](lib/domain/case.ts) → [`evidence.ts`](lib/domain/evidence.ts) — identity, untrusted-output validation, grounding and deterministic routing.
 3. [`tests/ai.test.ts`](tests/ai.test.ts) + [`revisions.test.ts`](tests/revisions.test.ts) — five authority-boundary regressions over AI and revision behavior.
 4. [`evals/run.ts`](evals/run.ts) — five live cases plus an independently calibrated LLM judge.
+
+The [interactive architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) maps those files to the visible product claims without requiring repository archaeology.
 
 ## Limits
 

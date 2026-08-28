@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "atlas:build": "node docs/architecture/atlas/build.mjs",
+    "prebuild": "pnpm atlas:build",
     "build": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
