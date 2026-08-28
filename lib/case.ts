@@ -53,7 +53,7 @@ export function inspect(packet: Packet, raw: unknown): Inspection {
     if (!field.candidates.length) issues.push(`missing:${field.name}`);
     const values = new Set<string>();
     for (const candidate of field.candidates) {
-      values.add(candidate.value);
+      values.add(field.name === "legal_name" ? candidate.value.toLowerCase().replace(/[,.\s]/g, "") : candidate.value);
       if (!formatOk(field.name, candidate.value)) issues.push(`format:${field.name}`);
       const resolves = candidate.evidence.every((evidence) => documents.get(evidence.documentId)?.includes(evidence.excerpt));
       const supports = candidate.evidence.some((evidence) => evidence.excerpt.toLowerCase().includes(candidate.value.toLowerCase()));

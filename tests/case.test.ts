@@ -12,7 +12,7 @@ describe("authority boundaries", () => {
     expect(inspect(packet, forged).route).toBe("blocked");
   });
   it("restores an omitted document-level bank contradiction", () => {
-    const omitted = structuredClone(packet.replay); omitted.fields.at(-1)!.candidates.pop();
+    const omitted = structuredClone(packet.replay); omitted.fields.at(-1)!.candidates.pop(); omitted.fields[0].candidates.push({ value: "Northstar Demo Components, LLC", evidence: [{ documentId: "DOC-AGREEMENT-001", excerpt: "Northstar Demo Components, LLC" }] });
     expect(inspect(packet, omitted)).toMatchObject({ route: "needs_review", conflicts: ["bank_account_last4"] });
   });
   it("blocks approval without a supported choice and reason", () => expect(() => approve(packet, packet.replay)).toThrow("reason"));
