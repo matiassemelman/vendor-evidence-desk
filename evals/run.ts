@@ -51,7 +51,12 @@ const liveCases = runs.map(({ id, documents, output }) => ({
 }));
 const items = [...calibration, ...liveCases];
 const ids = items.map((item) => item.id);
-const judgeModel = process.env.JUDGE_MODEL || "gpt-5.6-sol";
+const JUDGE_MODEL = "gpt-5.5";
+const JUDGE_SNAPSHOT = "gpt-5.5-2026-04-23";
+const judgeModel = process.env.JUDGE_MODEL || JUDGE_MODEL;
+if (judgeModel !== JUDGE_MODEL) {
+  throw new Error(`JUDGE_MODEL must be ${JUDGE_MODEL}`);
+}
 const started = Date.now();
 const resultSchema = {
   type: "object",
@@ -93,6 +98,9 @@ const response = await new OpenAI({ maxRetries: 0 }).responses.create({
     },
   },
 });
+if (response.model !== JUDGE_SNAPSHOT) {
+  throw new Error("Judge model snapshot mismatch");
+}
 
 const judgments = JSON.parse(response.output_text).results as {
   id: string; pass: boolean; reason: string;

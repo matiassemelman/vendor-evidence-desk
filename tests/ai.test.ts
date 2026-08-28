@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import OpenAI from "openai";
 import packetJson from "../fixtures/case.json";
 import { extract } from "../lib/ai/run";
-import { LIVE_MODEL, liveWorker, OPENAI_CLIENT_OPTIONS } from "../lib/ai/worker";
+import {
+  LIVE_MODEL, LIVE_SNAPSHOT, liveWorker, OPENAI_CLIENT_OPTIONS,
+} from "../lib/ai/worker";
 import {
   CASE_ID, WORKER_CONTRACT, inputHash, type EffectiveModel, type Packet,
   type WorkerResult, workerInputHash,
@@ -71,11 +73,12 @@ describe("AI evidence handling", () => {
     replayMode();
     const exact: EffectiveModel = {
       requested: LIVE_MODEL,
-      id: "gpt-5.5-2026-04-23",
+      id: LIVE_SNAPSHOT,
       contract: WORKER_CONTRACT,
     };
     const alias: EffectiveModel = {
-      requested: LIVE_MODEL, id: LIVE_MODEL, contract: WORKER_CONTRACT,
+      requested: LIVE_MODEL, id: LIVE_MODEL,
+      contract: WORKER_CONTRACT,
     };
     expect(inputHash(packet, exact)).toBe(
       inputHash(structuredClone(packet), exact),
@@ -99,7 +102,7 @@ describe("AI evidence handling", () => {
     process.env.OPENAI_MODEL = LIVE_MODEL;
     const model: EffectiveModel = {
       requested: LIVE_MODEL,
-      id: "gpt-5.5-2026-04-23",
+      id: LIVE_SNAPSHOT,
       contract: WORKER_CONTRACT,
     };
     const calls: string[] = [];

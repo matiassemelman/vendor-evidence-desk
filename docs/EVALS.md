@@ -12,7 +12,9 @@ Five cases are regression evidence, not an accuracy estimate. Model, prompt, sch
 
 ## Latest verified live run
 
-On 2026-08-28, all 15 extraction workers returned `gpt-5.5-2026-04-23` for requested alias `gpt-5.5`. They used 3,948 input and 5,298 output tokens. The calibrated batched judge passed all five outputs and both anchors, using 4,807 input and 1,241 output tokens.
+On 2026-08-28, all 15 extraction workers returned `gpt-4.1-mini-2025-04-14` for requested alias `gpt-4.1-mini`. They used 4,233 input and 4,416 output tokens. The calibrated `gpt-5.5-2026-04-23` batched judge passed all five outputs and both anchors, using 4,692 input and 1,039 output tokens.
+
+At published standard rates on that date, the extraction path cost an estimated US$0.008759 for all five cases (US$0.001752 per three-worker case) and the judge US$0.054630. The US$0.063389 total is 73.8% below the verified US$0.2422 all-`gpt-5.5` baseline; the product path alone is 95.2% lower. These are token-derived estimates, not invoice or scale claims. See [model routing](MODEL_ROUTING.md).
 
 | Case | Expected and actual route | Judge |
 | --- | --- | --- |
