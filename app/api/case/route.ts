@@ -37,7 +37,7 @@ const changed = (packet: Packet, change: unknown) => {
   next.replay.fields.find((field) => field.name === "bank_account_last4")!.candidates = [{ value: "4421", evidence: [{ documentId: "DOC-PROFILE-001", excerpt: "Remittance account ending: 4421" }, { documentId: "DOC-INVOICE-001", excerpt: "Remittance account ending: 4421" }] }];
   return next;
 };
-const revisionFrom = (run: Awaited<ReturnType<typeof extract>>, scenario: string, lineageId: string, parentRevisionId: string | null): CaseRevision => { const revisionId = randomUUID(); return { revisionId, lineageId, parentRevisionId, caseId: CASE_ID, scenario, inputHash: run.inputHash, decisionDigest: run.decisionDigest, effectiveModel: run.effectiveModel, workers: run.workers, result: { route: run.route as Inspection["route"], issues: run.issues, conflicts: run.conflicts as Inspection["conflicts"], extraction: run.extraction }, analysisEvents: run.analysisEvents.map((event) => ({ ...event, revisionId })), lifecycle: { validity: "current" }, createdAt: new Date().toISOString() }; };
+const revisionFrom = (run: Awaited<ReturnType<typeof extract>>, packet: Packet, scenario: string, lineageId: string, parentRevisionId: string | null): CaseRevision => { const revisionId = randomUUID(); return { revisionId, lineageId, parentRevisionId, caseId: CASE_ID, scenario, documents: packet.documents, inputHash: run.inputHash, decisionDigest: run.decisionDigest, effectiveModel: run.effectiveModel, workers: run.workers, result: { route: run.route as Inspection["route"], issues: run.issues, conflicts: run.conflicts as Inspection["conflicts"], extraction: run.extraction }, analysisEvents: run.analysisEvents.map((event) => ({ ...event, revisionId })), lifecycle: { validity: "current" }, createdAt: new Date().toISOString() }; };
 const approve = (revision: CaseRevision, selected: unknown, reason: unknown) => {
   if (typeof selected !== "string" || typeof reason !== "string" || reason.trim().length < 12) throw new Error("A supported selection and review reason are required");
   if (revision.result.route === "blocked") throw new Error("Blocked cases cannot be approved");
@@ -54,15 +54,15 @@ export async function POST(request: Request) {
       const command = body as Record<string, unknown>;
       if (command.caseId !== CASE_ID) throw new Error("Case is not allowlisted");
       if (exact(command, ["action", "caseId", "scenario"])) {
-        const scenario = command.scenario as Scenario, run = await extract(packetFor(scenario)), revision = revisionFrom(run, scenario, randomUUID(), null), persisted = await insertRevision(revision);
+        const scenario = command.scenario as Scenario, packet = packetFor(scenario), run = await extract(packet), revision = revisionFrom(run, packet, scenario, randomUUID(), null), persisted = await insertRevision(revision);
         return Response.json({ ...run, revision, analysisCapability: sign({ version: 1, revisionId: revision.revisionId, lineageId: revision.lineageId, decisionDigest: revision.decisionDigest }), persisted });
       }
       if (exact(command, ["action", "caseId", "analysisCapability", "documentChange"])) {
         const capability = verify(command.analysisCapability), parent = await getRevision(capability.revisionId);
         if (!parent || parent.lineageId !== capability.lineageId || parent.decisionDigest !== capability.decisionDigest || parent.lifecycle.validity !== "current") throw new Error("Revision capability is stale or invalid");
-        const run = await extract(changed(packetFor(parent.scenario), command.documentChange), parent.workers), revision = revisionFrom(run, parent.scenario, parent.lineageId, parent.revisionId), created = await createSuccessor(parent.revisionId, revision);
+        const packet = changed(packetFor(parent.scenario), command.documentChange), run = await extract(packet, parent.workers), revision = revisionFrom(run, packet, parent.scenario, parent.lineageId, parent.revisionId), created = await createSuccessor(parent.revisionId, revision);
         if (!created.created) return Response.json({ error: "Revision capability is stale or invalid" }, { status: 409 });
-        return Response.json({ ...run, revision, analysisCapability: sign({ version: 1, revisionId: revision.revisionId, lineageId: revision.lineageId, decisionDigest: revision.decisionDigest }), persisted: created.persisted });
+        return Response.json({ ...run, revision, supersededRevision: await getRevision(parent.revisionId), analysisCapability: sign({ version: 1, revisionId: revision.revisionId, lineageId: revision.lineageId, decisionDigest: revision.decisionDigest }), persisted: created.persisted });
       }
       throw new Error("Unsupported command shape");
     }
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       const approvedAt = new Date().toISOString(), exportReceipt = { receiptId: `MOCK-${randomUUID()}`, exportedAt: approvedAt, mode: "mock_erp" as const };
       const receipt: ApprovalReceipt = { receiptId: `APPROVAL-${randomUUID()}`, revisionId: revision.revisionId, lineageId: revision.lineageId, decisionDigest: revision.decisionDigest, selected: command.selected as string, reason: (command.reason as string).trim(), approvedAt, export: exportReceipt };
       const saved = await approveAndExport(revision.revisionId, revision.lineageId, revision.decisionDigest, receipt.selected, receipt.reason, receipt);
-      return Response.json({ approvalReceipt: saved.receipt, persisted: saved.persisted, repeated: saved.repeated, exportMode: "mock_erp" });
+      return Response.json({ approvalReceipt: saved.receipt, approvedRevision: await getRevision(revision.revisionId), persisted: saved.persisted, repeated: saved.repeated, exportMode: "mock_erp" });
     }
     throw new Error("Unsupported command shape");
   } catch (error) {
