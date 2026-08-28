@@ -2,6 +2,8 @@
 
 Turn supplier documents into an evidence-backed vendor record, surface contradictions for human review, and export only after approval.
 
+[Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Read the evaluation design](docs/EVALS.md)
+
 This is a compact AI/full-stack case study. It accepts one synthetic, allowlisted packet—not uploads or prompts—then makes one server-side structured extraction. Every proposed value links to an exact source excerpt. Deterministic rules keep the `4421` / `9921` bank conflict unresolved until a reviewer selects a value and explains why.
 
 ![Vendor Evidence Desk product overview](docs/product-overview.png)
@@ -25,7 +27,7 @@ pnpm verify       # lint, types, 5 tests, production build
 pnpm eval         # 5 live cases + calibrated LLM judge; requires API key
 ```
 
-Latest verification: 5/5 deterministic routes and 5/5 calibrated judge verdicts passed with `gpt-5.5`; two repeated approved exports produced one Neon row on 2026-08-27. See [evaluation design and results](docs/EVALS.md).
+Latest verification: 5/5 eval routes and judge verdicts passed; the deployed `gpt-5.5` workflow preserved the bank conflict, rejected tampering and persisted the approved snapshot to Neon on 2026-08-27.
 
 ## Engineering choices
 
