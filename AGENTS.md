@@ -5,7 +5,7 @@ Build one legible portfolio product, not a reusable workflow platform.
 - The public story is `documents → evidence → deterministic exception → human decision → mock export`.
 - AI may propose fields and evidence; only deterministic code routes and only a person approves.
 - Accept only `CASE-NDC-001`; never add anonymous uploads or free-form prompts to this release.
-- Keep handwritten executable/config code efficient and at or below 1000 lines; the extra room exists for visible product quality, not verbosity or speculative architecture.
+- Target at most 1400 handwritten executable/config lines; crossing 1450 blocks release review. The extra room exists only for the revision-bound Case Lab, selective document analysis, visible product quality and real verification—not verbosity or speculative architecture.
 - Keep exactly five focused tests and five inspectable eval cases.
 - No new service, abstraction, dependency, or guard unless it protects a visible claim.
 - Never claim live AI, persistence, deployment, or eval results without direct evidence.
