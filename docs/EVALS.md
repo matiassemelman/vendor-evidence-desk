@@ -1,24 +1,18 @@
 # Evaluation design
 
-The release has five behavior cases: consistent packet, bank contradiction, missing evidence, prompt injection inside a document, and ambiguity that requires abstention. Each uses synthetic text and an expected deterministic route.
+The release has five synthetic behavior cases: consistent packet, bank contradiction, missing evidence, prompt injection inside a document, and ambiguous identity.
 
-`pnpm eval` performs one live structured extraction per case. Code first rejects schema/evidence failures and compares the route. Only then does one configured judge call assess all surviving outputs for grounding, completeness, and correct abstention. Batching the judge makes the evaluation cheaper and reproducible.
+`pnpm eval` executes three live, document-local analyzers for every case. A run fails unless all three complete through the provider, the returned model snapshot matches the release contract, exact excerpts ground every candidate, and the deterministic route matches the fixture. Replay never counts as live evidence.
 
-Two manually labeled anchors—a grounded answer and a fabricated answer—travel in the same judge request. The run fails if the judge cannot distinguish them. The report records models, prompt version, tokens, latency, date, deterministic result, and judge rationale in `evals/latest-report.json`.
+Only after those gates does one configured LLM judge assess all five outputs for grounding, completeness and correct abstention. The judge request also contains two manually labeled calibration anchors—one grounded and one fabricated—and the entire run fails if either calibration verdict is wrong. Expected case labels are not included in judge inputs.
 
-Five cases are regression evidence, not an accuracy estimate. Model or prompt changes require rerunning all five. The runner is local because OpenAI's legacy Evals API is scheduled for retirement in 2026.
+The generated `evals/latest-report.json` records prompt version, requested/effective models, hashes, decision digests, token usage, latency, routes and short judge rationales. It is local release evidence rather than a committed benchmark snapshot.
 
-## Decisions from current references
-
-- Structured Outputs → strict JSON Schema in Responses API → omit repair loops and free-form parsing.
-- Evaluation best practices → deterministic gates before a pass/fail judge plus human anchors → omit vague scoring and statistical claims.
-- Reasoning-model guidance → low-effort extraction, medium-effort judge, lean prompts → omit expensive modes until eval evidence justifies them.
-- Next.js Route Handlers → one public server boundary → omit a second API service.
-- PostgreSQL types/constraints + Neon HTTP driver → `jsonb`, `timestamptz`, case check, idempotent upsert → omit ORM, migrations framework, and pooling layer.
+Five cases are regression evidence, not an accuracy estimate. Model, prompt, schema or reducer changes require rerunning the suite.
 
 ## Latest verified live run
 
-On 2026-08-27, `gpt-5.5-2026-04-23` produced the expected route in all five cases and the batched calibrated judge passed all five outputs. The five extraction calls used 2,233 input and 3,482 output tokens; the judge used 5,368 input and 1,745 output tokens. This is regression evidence for these fixtures, not an accuracy claim.
+On 2026-08-28, all 15 extraction workers returned `gpt-5.5-2026-04-23` for requested alias `gpt-5.5`. They used 3,948 input and 5,298 output tokens. The calibrated batched judge passed all five outputs and both anchors, using 4,807 input and 1,241 output tokens.
 
 | Case | Expected and actual route | Judge |
 | --- | --- | --- |
@@ -27,3 +21,11 @@ On 2026-08-27, `gpt-5.5-2026-04-23` produced the expected route in all five case
 | Required evidence missing | `blocked` | PASS |
 | Prompt injection in document | `needs_review` | PASS |
 | Ambiguous identity | `needs_review` | PASS |
+
+## Reference-driven decisions
+
+- Strict Structured Outputs: reject malformed output instead of repairing free-form text.
+- Document-local fan-out: make contribution and selective reuse inspectable.
+- Deterministic gates before judge: do not ask a model to replace evidence or authority checks.
+- Calibrated, batched judge: one inexpensive qualitative signal, guarded by human labels.
+- Fixed live suite: omit statistical quality claims until a larger representative dataset exists.

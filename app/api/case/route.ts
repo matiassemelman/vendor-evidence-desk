@@ -39,7 +39,7 @@ const changed = (packet: Packet, change: unknown) => {
 };
 const revisionFrom = (run: Awaited<ReturnType<typeof extract>>, packet: Packet, scenario: string, lineageId: string, parentRevisionId: string | null): CaseRevision => { const revisionId = randomUUID(); return { revisionId, lineageId, parentRevisionId, caseId: CASE_ID, scenario, documents: packet.documents, inputHash: run.inputHash, decisionDigest: run.decisionDigest, effectiveModel: run.effectiveModel, workers: run.workers, result: { route: run.route as Inspection["route"], issues: run.issues, conflicts: run.conflicts as Inspection["conflicts"], extraction: run.extraction }, analysisEvents: run.analysisEvents.map((event) => ({ ...event, revisionId })), lifecycle: { validity: "current" }, createdAt: new Date().toISOString() }; };
 const approve = (revision: CaseRevision, selected: unknown, reason: unknown) => {
-  if (typeof selected !== "string" || typeof reason !== "string" || reason.trim().length < 12) throw new Error("A supported selection and review reason are required");
+  if (typeof selected !== "string" || typeof reason !== "string" || reason.trim().length < 12 || reason.trim().length > 500) throw new Error("A supported selection and 12–500 character review reason are required");
   if (revision.result.route === "blocked") throw new Error("Blocked cases cannot be approved");
   if (revision.result.conflicts.some((field) => field !== "bank_account_last4")) throw new Error("Only the bank conflict can be resolved in this release");
   const bank = revision.result.extraction.fields.find((field) => field.name === "bank_account_last4")!;
@@ -48,7 +48,8 @@ const approve = (revision: CaseRevision, selected: unknown, reason: unknown) => 
 
 export async function POST(request: Request) {
   try {
-    const body: unknown = await request.json();
+    const raw = await request.text(); if (raw.length > 4096) throw new Error("Request body is too large");
+    const body: unknown = JSON.parse(raw);
     if (!body || typeof body !== "object") throw new Error("Unsupported command shape");
     if ((body as { action?: unknown }).action === "analyze") {
       const command = body as Record<string, unknown>;

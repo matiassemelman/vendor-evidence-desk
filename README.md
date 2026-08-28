@@ -1,18 +1,18 @@
 # Vendor Evidence Desk
 
-Turn supplier documents into an evidence-backed vendor record, surface contradictions for human review, and export only after approval.
+Watch three document analyzers prepare an evidence-backed vendor record, preserve consequential conflicts, and stop for an accountable human decision.
 
 [Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Read the evaluation design](docs/EVALS.md)
 
-This is a compact AI/full-stack case study. It accepts one synthetic, allowlisted packet—not uploads or prompts—then makes one server-side structured extraction. Every proposed value links to an exact source excerpt. Deterministic rules keep the `4421` / `9921` bank conflict unresolved until a reviewer selects a value and explains why.
+This compact AI/full-stack case study accepts one synthetic, allowlisted supplier packet—not uploads or user prompts. One bounded analyzer processes each document in parallel. A deterministic reducer validates exact excerpts, merges equivalent values, and keeps the `4421` / `9921` bank conflict unresolved.
 
-The guided runner keeps each handoff visible: bounded preparation, a real AI run trace, deterministic verification, human exception review, and the exact export receipt.
+The Case Lab exposes the completed execution as a fork-and-join trace. A reviewer can inspect each worker, its exact source input, token usage and evidence; approve only a grounded candidate; then change the invoice and see two unchanged workers reused while one runs again. The prior approval remains historical and the successor becomes the only current revision.
 
 ![Vendor Evidence Desk product overview](docs/product-overview.png)
 
 ## Why this exists
 
-Supplier onboarding is not just extraction. The product decision is to automate preparation while keeping consequential judgment explicit. The demo proves that boundary without pretending to be a production ERP or an adopted customer system.
+Supplier onboarding is not just extraction. The product decision is to automate preparation while keeping consequential judgment explicit. The demo proves that boundary without pretending to be a production ERP, an adopted customer system, or a general document platform.
 
 ## Run it
 
@@ -22,26 +22,37 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Without credentials the UI uses a versioned replay labeled as such. Set `OPENAI_API_KEY` and `LIVE_AI_ENABLED=1` for a bounded live run. Add `DATABASE_URL` after applying `schema.sql` to persist the approved snapshot; otherwise export remains clearly labeled `preview`.
+Without credentials the UI uses a versioned replay labeled as such. Set `OPENAI_API_KEY` and `LIVE_AI_ENABLED=1` for live analyzers. Apply `schema.sql` and add `DATABASE_URL` for revision history and idempotent approval/export; without it the UI explicitly says `preview memory`.
 
 ```bash
-pnpm verify       # lint, types, 5 tests, production build
-pnpm eval         # 5 live cases + calibrated LLM judge; requires API key
+pnpm verify       # lint, types, exactly 5 tests, production build
+pnpm eval         # 5 cases × 3 live analyzers + calibrated LLM judge
+pnpm release-db   # isolated migration/CAS/idempotency rehearsal
 ```
 
-Latest verification: 5/5 eval routes and judge verdicts passed; the deployed `gpt-5.5` workflow preserved the bank conflict, rejected tampering and persisted the approved snapshot to Neon on 2026-08-27.
+## Verified release evidence
+
+On 2026-08-28:
+
+- 5/5 deterministic tests passed; lint, typecheck and production build passed.
+- 5/5 live eval routes and calibrated judge verdicts passed; all 15 document analyzers completed live.
+- Requested model `gpt-5.5` returned the required snapshot `gpt-5.5-2026-04-23`; both identities are part of reuse eligibility.
+- An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
+- Desktop and 390 px mobile QA passed without browser alerts or horizontal overflow.
+- The tracked implementation contains 618 non-empty executable/config lines under a 1,450-line hard ceiling.
 
 ## Engineering choices
 
-- OpenAI Responses API + strict JSON Schema; documents are untrusted data and the model has no tools.
-- The run trace exposes actual model, latency, token usage and provider IDs while separating model proposals from deterministic checks.
-- Evidence resolution and routing are deterministic, after the model response.
-- A single Next.js Route Handler is the server boundary; secrets never reach the browser.
-- One PostgreSQL table stores the approved JSON snapshot with an idempotent case key.
-- Five deterministic tests guard authority boundaries; five versioned eval cases run live with configured credentials.
+- OpenAI Responses API with strict JSON Schema; documents are untrusted data and analyzers receive no tools.
+- Three document-local workers run concurrently; one deterministic reducer owns validation and routing.
+- HMAC capabilities bind lineage, exact revision and decision digest before approval or selective reanalysis.
+- A successor recomputes only the changed document; unchanged workers are reused only when their input and effective model identities match.
+- One Next.js Route Handler keeps credentials server-side.
+- One PostgreSQL table stores immutable revision payloads, current/superseded validity and idempotent receipts.
+- Exactly five tests protect the high-value authority boundaries; five live evals are regression evidence, not an accuracy claim.
 
-See [eval design](docs/EVALS.md) and [the human–AI build process](docs/BUILD_PROCESS.md). All companies, people, identifiers, addresses, and bank details are fictional.
+See the [evaluation design](docs/EVALS.md) and [human–AI build process](docs/BUILD_PROCESS.md). All companies, people, identifiers, addresses and bank details are fictional.
 
 ## Limits
 
-One known document shape, English text only, no OCR, no authentication, no arbitrary files, no scale or accuracy claim. Public deployment requires platform rate limiting and an OpenAI project spend cap; those controls are external by design rather than simulated in application memory.
+One known English document shape, no OCR, no authentication, no arbitrary uploads, no real ERP, and no claim of scale or customer adoption. Public cost protection uses a platform rate limit plus an OpenAI project hard spend cap.

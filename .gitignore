@@ -6,3 +6,4 @@ coverage/
 *.local.md
 evals/latest-report.json
 *.tsbuildinfo
+.vercel

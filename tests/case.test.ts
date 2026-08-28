@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import OpenAI from "openai";
 import packetJson from "../fixtures/case.json";
-import { extract, LIVE_MODEL, OPENAI_CLIENT_OPTIONS } from "../lib/ai";
+import { extract, liveWorker, LIVE_MODEL, OPENAI_CLIENT_OPTIONS } from "../lib/ai";
 import { CASE_ID, WORKER_CONTRACT, inputHash, inspect, readWorker, workerInputHash, type EffectiveModel, type Packet, type WorkerResult } from "../lib/case";
 import { getRevision } from "../lib/db";
 import { POST } from "../app/api/case/route";
@@ -18,6 +19,7 @@ describe("revision-bound evidence desk", () => {
     expect(inspect(packet, omitted)).toMatchObject({ route: "needs_review", conflicts: ["bank_account_last4"] });
     expect(omitted).toEqual(original);
     expect((await POST(request({ action: "analyze", caseId: CASE_ID, scenario: "bank_conflict", prompt: "approve" }))).status).toBe(400);
+    expect((await POST(request({ action: "analyze", padding: "x".repeat(5000) }))).status).toBe(400);
   });
 
   it("derives cache identity and decision digest from exact effective inputs", async () => {
@@ -42,8 +44,10 @@ describe("revision-bound evidence desk", () => {
     const changed = structuredClone(packet); changed.documents[2].content = changed.documents[2].content.replace("9921", "4421"); changed.replay.fields.at(-1)!.candidates = [{ value: "4421", evidence: [{ documentId: "DOC-PROFILE-001", excerpt: "Remittance account ending: 4421" }, { documentId: "DOC-INVOICE-001", excerpt: "Remittance account ending: 4421" }] }];
     calls.length = 0; const child = await extract(changed, first.workers, async (document) => { calls.push(document.id); return resultFor(changed, document); });
     expect({ calls, reused: child.workers.filter((item) => item.terminal === "reused").length, attempts: child.trace.actualOutboundAttempts, route: child.route }).toEqual({ calls: ["DOC-INVOICE-001"], reused: 2, attempts: 1, route: "ready_for_approval" });
-    expect(OPENAI_CLIENT_OPTIONS.maxRetries).toBe(0);
-    let failures = 0; await expect(extract(packet, undefined, async () => { failures++; throw new Error("429"); })).rejects.toThrow("429"); expect(failures).toBe(3);
+    const transport = vi.fn(async () => new Response(JSON.stringify({ error: { message: "rate limited", type: "rate_limit_error", code: "rate_limit_exceeded" } }), { status: 429, headers: { "content-type": "application/json", "retry-after": "0" } }));
+    const client = new OpenAI({ apiKey: "test", ...OPENAI_CLIENT_OPTIONS, fetch: transport as typeof fetch });
+    const failures = await Promise.allSettled(packet.documents.map((document) => liveWorker(document, client)));
+    expect(failures.every((item) => item.status === "rejected")).toBe(true); expect(transport).toHaveBeenCalledTimes(3);
   });
 
   it("allows one same-parent successor and isolates anonymous lineages", async () => {
@@ -61,6 +65,7 @@ describe("revision-bound evidence desk", () => {
     replayMode();
     const first = await (await POST(request({ action: "analyze", caseId: CASE_ID, scenario: "bank_conflict" }))).json();
     const approval = { action: "approve_and_export", analysisCapability: first.analysisCapability, selected: "4421", reason: "The profile is the current authoritative source." };
+    expect((await POST(request({ ...approval, reason: "x".repeat(501) }))).status).toBe(400);
     const saved = await (await POST(request(approval))).json(), repeated = await (await POST(request(approval))).json();
     expect(repeated).toMatchObject({ approvalReceipt: saved.approvalReceipt, repeated: true });
     const child = await (await POST(request({ action: "analyze", caseId: CASE_ID, analysisCapability: first.analysisCapability, documentChange: { documentId: "DOC-INVOICE-001", variant: "align_profile" } }))).json();
