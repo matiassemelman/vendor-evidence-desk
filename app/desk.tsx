@@ -4,7 +4,10 @@ import type { Extraction, Packet } from "@/lib/case";
 
 type Run = {
   extraction: Extraction; route: string; issues: string[]; conflicts: string[]; proof: string;
-  meta: { mode: "live" | "replay"; model: string; inputTokens: number; outputTokens: number; latencyMs: number; reason?: string };
+  trace: { source: "live" | "replay"; attempt: "not_attempted" | "completed" | "failed"; latencyMs: number;
+    provider?: string; responseId?: string; requestId?: string; model?: string; status?: string;
+    usage?: { input: number; output: number; total: number }; reason?: "disabled" | "provider_failure" | "invalid_output";
+    documentIds: string[]; proposal: { fields: number; candidates: number; evidence: number }; verifiedFields: number; ruleAddedCandidates: number };
 };
 type Receipt = { record: { recordId: string }; persisted: boolean; exportMode: string; approvedAt: string };
 type Activity = "analyze" | "export";
@@ -14,6 +17,7 @@ const labels: Record<string, string> = {
   payment_terms_days: "Payment terms", bank_account_last4: "Bank account",
 };
 const stages = ["Sources", "Evidence", "Review", "Export"];
+const traceReasons = { disabled: "Live AI disabled · fixture used", provider_failure: "Provider failure · fixture used", invalid_output: "Invalid model output · fixture used" };
 const moveTo = (element: HTMLElement | null) => {
   if (!element) return;
   const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -101,15 +105,26 @@ export default function Desk({ packet }: { packet: Packet }) {
           <div><p className="eyebrow">02 / Evidence preparation</p><h2 id="workbench-title">Building a grounded vendor record.</h2>
             <p>The workspace moved with your action. The model can propose; deterministic checks still decide what needs review.</p></div>
           <div className="processing-signal" aria-hidden="true"><span/><span/><span/></div>
-          <ul><li><b>3</b><span>Allowlisted documents</span></li><li><b>8</b><span>Required fields</span></li><li><b>0</b><span>Autonomous decisions</span></li></ul>
+          <ol className="trace-lanes pending"><li><b>AI</b><span>One bounded request in flight</span></li>
+            <li><b>Rules</b><span>Waiting for model proposal</span></li><li><b>Human</b><span>Not reached</span></li></ol>
         </div>}
         {error && <div className="flow-error" role="alert"><div><p>Workflow interrupted</p><h2>{error}</h2></div>
           <button onClick={run ? exportCase : analyze}>{run ? "Retry export" : "Retry evidence check"}</button></div>}
         {run && <>
-        <div className="runbar"><div><span className={run.meta.mode}>{run.meta.mode}</span>
-          <b>{run.route.replaceAll("_", " ")}</b></div>
-          <p>{run.meta.model} · {run.meta.latencyMs} ms · {run.meta.inputTokens + run.meta.outputTokens} tokens</p>
-          {run.meta.reason && <small>{run.meta.reason}</small>}
+        <div className="runtrace">
+          <div className="trace-head"><div><span className={run.trace.source}>{run.trace.source === "live" ? "Live model call" : run.trace.attempt === "failed" ? "Live attempt failed · replay" : "Replay fixture"}</span>
+            <b>{run.trace.source === "live" ? "completed" : run.trace.attempt === "failed" ? "fallback used" : "no provider call"}</b></div>
+            <p>{run.trace.source === "live" ? `${run.trace.model} · ${run.trace.latencyMs} ms · ${run.trace.usage?.input} in / ${run.trace.usage?.output} out` : run.trace.reason && traceReasons[run.trace.reason]}</p></div>
+          <ol className="trace-lanes"><li><b>AI</b><span>{run.trace.source === "live" ? `${run.trace.proposal.fields} fields · ${run.trace.proposal.candidates} candidates · ${run.trace.proposal.evidence} excerpts` : `Versioned fixture · ${run.trace.proposal.fields} fields`}</span></li>
+            <li><b>Rules</b><span>{run.trace.verifiedFields}/8 verified · {run.conflicts.length} conflict preserved · {run.route.replaceAll("_", " ")}</span></li>
+            <li><b>Human</b><span>{run.route === "needs_review" ? "Decision required · bank account" : run.route === "blocked" ? "Approval blocked" : "Ready for approval"}</span></li></ol>
+          <details className="inspector"><summary>Inspect this {run.trace.source === "live" ? "AI run" : "replay"}</summary><div>
+            <dl><dt>Provider call</dt><dd>{run.trace.provider || "Not called"}</dd><dt>Response status</dt><dd>{run.trace.status || "Replay"}</dd>
+              {run.trace.responseId && <><dt>Response ID</dt><dd className="trace-id" title={run.trace.responseId}>{run.trace.responseId}</dd></>}
+              {run.trace.requestId && <><dt>Request ID</dt><dd className="trace-id" title={run.trace.requestId}>{run.trace.requestId}</dd></>}</dl>
+            <dl><dt>Input boundary</dt><dd>{run.trace.documentIds.join(" · ")}</dd><dt>Proposal delta</dt><dd>{run.trace.ruleAddedCandidates ? `${run.trace.ruleAddedCandidates} candidate recovered by rules` : "No rule-added candidates"}</dd>
+              <dt>Verified facts</dt><dd>Structured proposal parsed · evidence inspected · deterministic route recorded</dd></dl>
+          </div></details>
         </div>
         <div className="case-summary"><div><p className="eyebrow">Evidence check complete</p>
           <h2 id="workbench-title">Eight grounded fields. One decision is still yours.</h2>
@@ -123,8 +138,8 @@ export default function Desk({ packet }: { packet: Packet }) {
             <div><span>{labels[field.name]}</span>{run.conflicts.includes(field.name) && <strong>Exception</strong>}</div>
             <h3>{field.candidates.map((candidate) => candidate.value).join(" / ") || "No grounded value"}</h3>
             <details><summary>{field.candidates.reduce((count, candidate) => count + candidate.evidence.length, 0)} evidence receipt(s)</summary>
-              {field.candidates.flatMap((candidate) => candidate.evidence.map((evidence) =>
-                <blockquote key={candidate.value + evidence.documentId}>“{evidence.excerpt}”<cite>{evidence.documentId}</cite></blockquote>
+              {field.candidates.flatMap((candidate, candidateIndex) => candidate.evidence.map((evidence, evidenceIndex) =>
+                <blockquote key={`${field.name}-${candidateIndex}-${evidenceIndex}`}>“{evidence.excerpt}”<cite>{evidence.documentId}</cite></blockquote>
               ))}
             </details>
           </article>

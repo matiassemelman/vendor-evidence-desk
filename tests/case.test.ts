@@ -19,6 +19,8 @@ describe("authority boundaries", () => {
   it("exports only the exact server-issued extraction", async () => {
     const request = (body: object) => new Request("http://local/api/case", { method: "POST", body: JSON.stringify(body) });
     const run = await (await POST(request({ action: "analyze", caseId: packet.caseId }))).json();
+    expect(run.trace).toMatchObject({ source: "replay", attempt: "not_attempted", proposal: { fields: 8 }, verifiedFields: 8 });
+    expect(run.trace).not.toHaveProperty("model");
     const command = { action: "approve", caseId: packet.caseId, proof: run.proof, selected: "4421", reason: "The profile is current; the invoice is stale." };
     expect((await POST(request({ ...command, proof: `${run.proof}x` }))).status).toBe(400);
     expect(await (await POST(request(command))).json()).toMatchObject({ record: { recordId: "ERP-CASE-NDC-001" }, exportMode: "preview" });

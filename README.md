@@ -6,7 +6,7 @@ Turn supplier documents into an evidence-backed vendor record, surface contradic
 
 This is a compact AI/full-stack case study. It accepts one synthetic, allowlisted packet—not uploads or prompts—then makes one server-side structured extraction. Every proposed value links to an exact source excerpt. Deterministic rules keep the `4421` / `9921` bank conflict unresolved until a reviewer selects a value and explains why.
 
-The guided runner keeps each handoff visible: bounded preparation, evidence summary, human exception review, and the exact export receipt.
+The guided runner keeps each handoff visible: bounded preparation, a real AI run trace, deterministic verification, human exception review, and the exact export receipt.
 
 ![Vendor Evidence Desk product overview](docs/product-overview.png)
 
@@ -34,6 +34,7 @@ Latest verification: 5/5 eval routes and judge verdicts passed; the deployed `gp
 ## Engineering choices
 
 - OpenAI Responses API + strict JSON Schema; documents are untrusted data and the model has no tools.
+- The run trace exposes actual model, latency, token usage and provider IDs while separating model proposals from deterministic checks.
 - Evidence resolution and routing are deterministic, after the model response.
 - A single Next.js Route Handler is the server boundary; secrets never reach the browser.
 - One PostgreSQL table stores the approved JSON snapshot with an idempotent case key.
