@@ -58,6 +58,7 @@ const formatOk = (name: FieldName, value: string) => {
   if (name === "bank_account_last4") return /^\d{4}$/.test(value);
   return Boolean(value.trim());
 };
+const normalized = (name: FieldName, value: string) => name === "legal_name" ? value.toLowerCase().replace(/[,\.\s]/g, "") : value.trim();
 export function inspect(packet: Packet, raw: unknown): Inspection {
   if (packet.caseId !== CASE_ID || !packet.synthetic || packet.documents.length !== 3 || new Set(packet.documents.map((document) => document.id)).size !== packet.documents.length) throw new Error("Case is not allowlisted");
   const extraction = readExtraction(raw), documents = new Map(packet.documents.map((document) => [document.id, document.content]));
@@ -67,7 +68,7 @@ export function inspect(packet: Packet, raw: unknown): Inspection {
     if (!field.candidates.length) issues.push(`missing:${field.name}`);
     const values = new Set<string>();
     for (const candidate of field.candidates) {
-      values.add(field.name === "legal_name" ? candidate.value.toLowerCase().replace(/[,\.\s]/g, "") : candidate.value);
+      values.add(normalized(field.name, candidate.value));
       if (!formatOk(field.name, candidate.value)) issues.push(`format:${field.name}`);
       if (!candidate.evidence.every((evidence) => documents.get(evidence.documentId)?.includes(evidence.excerpt)) || !candidate.evidence.some((evidence) => evidence.excerpt.toLowerCase().includes(candidate.value.toLowerCase()))) issues.push(`ungrounded:${field.name}`);
     }
@@ -79,7 +80,7 @@ export function reduce(packet: Packet, workers: WorkerResult[]): Inspection {
   if (workers.length !== packet.documents.length || new Set(workers.map((worker) => worker.documentId)).size !== packet.documents.length) throw new Error("Incomplete worker packet");
   return inspect(packet, { fields: FIELD_NAMES.map((name) => {
     const merged = new Map<string, Candidate>();
-    for (const candidate of workers.flatMap((worker) => worker.extraction.fields.find((field) => field.name === name)!.candidates)) merged.set(canonicalJson({ value: candidate.value, evidence: candidate.evidence }), candidate);
+    for (const candidate of workers.flatMap((worker) => worker.extraction.fields.find((field) => field.name === name)!.candidates)) { const key = normalized(name, candidate.value), prior = merged.get(key); if (!prior) merged.set(key, structuredClone(candidate)); else prior.evidence = [...new Map([...prior.evidence, ...candidate.evidence].map((item) => [canonicalJson(item), item])).values()]; }
     return { name, candidates: [...merged.values()].slice(0, 3) };
   }) });
 }

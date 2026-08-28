@@ -1,173 +1,48 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { Extraction, Packet } from "@/lib/case";
+import type { ApprovalReceipt, CaseRevision, Packet } from "@/lib/case";
 
-type Run = {
-  extraction: Extraction; route: string; issues: string[]; conflicts: string[]; proof: string;
-  trace: { source: "live" | "replay"; attempt: "not_attempted" | "completed" | "failed"; latencyMs: number;
-    provider?: string; responseId?: string; requestId?: string; model?: string; status?: string;
-    usage?: { input: number; output: number; total: number }; reason?: "disabled" | "provider_failure" | "invalid_output";
-    documentIds: string[]; proposal: { fields: number; candidates: number; evidence: number }; verifiedFields: number; ruleAddedCandidates: number };
-};
-type Receipt = { record: { recordId: string }; persisted: boolean; exportMode: string; approvedAt: string };
-type Activity = "analyze" | "export";
-const labels: Record<string, string> = {
-  legal_name: "Legal name", tax_id: "Tax ID", registered_address: "Registered address", country: "Country",
-  primary_contact_email: "Primary contact", payment_currency: "Currency",
-  payment_terms_days: "Payment terms", bank_account_last4: "Bank account",
-};
-const stages = ["Sources", "Evidence", "Review", "Export"];
-const traceReasons = { disabled: "Live AI disabled · fixture used", provider_failure: "Provider failure · fixture used", invalid_output: "Invalid model output · fixture used" };
-const moveTo = (element: HTMLElement | null) => {
-  if (!element) return;
-  const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-  element.scrollIntoView({ behavior, block: "start" });
-  element.focus({ preventScroll: true });
-};
+type Scenario = "clean" | "bank_conflict" | "adversarial";
+type Run = { revision: CaseRevision; analysisCapability: string; persisted: boolean; supersededRevision?: CaseRevision; trace: { source: "live" | "replay"; attempt: string; latencyMs: number; actualOutboundAttempts: number; model?: string; usage?: { input: number; output: number; total: number } } };
+type Approval = { approvalReceipt: ApprovalReceipt; approvedRevision: CaseRevision; persisted: boolean; repeated: boolean };
+const scenarios: { id: Scenario; label: string; note: string }[] = [
+  { id: "bank_conflict", label: "Conflicting account", note: "Two grounded bank values force human review." },
+  { id: "clean", label: "Consistent packet", note: "All three documents agree on the same account." },
+  { id: "adversarial", label: "Hostile document", note: "An instruction inside evidence receives no authority." },
+];
+const labels: Record<string, string> = { legal_name: "Legal name", tax_id: "Tax ID", registered_address: "Registered address", country: "Country", primary_contact_email: "Primary contact", payment_currency: "Currency", payment_terms_days: "Payment terms", bank_account_last4: "Bank account" };
+const short = (value: string) => `${value.slice(0, 8)}…${value.slice(-5)}`;
 
 export default function Desk({ packet }: { packet: Packet }) {
-  const [run, setRun] = useState<Run>();
-  const [selected, setSelected] = useState("4421");
-  const [reason, setReason] = useState("The onboarding profile is current; the sample invoice is explicitly stale.");
-  const [receipt, setReceipt] = useState<Receipt>();
-  const [activity, setActivity] = useState<Activity>();
-  const [error, setError] = useState("");
-  const workbenchRef = useRef<HTMLElement>(null);
-  const decisionRef = useRef<HTMLDivElement>(null);
-  const receiptRef = useRef<HTMLDivElement>(null);
-  const send = async (body: object, nextActivity: Activity) => {
-    setActivity(nextActivity);
-    setError("");
-    try {
-      const response = await fetch("/api/case", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
-      return data;
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Request failed"); }
-    finally { setActivity(undefined); }
-  };
-  const analyze = async () => {
-    setRun(undefined);
-    setReceipt(undefined);
-    const data = await send({ action: "analyze", caseId: packet.caseId }, "analyze");
-    if (data) setRun(data);
-  };
-  const exportCase = async () => {
-    if (!run) return;
-    const data = await send({ action: "approve", caseId: packet.caseId, proof: run.proof, selected, reason }, "export");
-    if (data) setReceipt(data);
-  };
-  const bank = run?.extraction.fields.find((field) => field.name === "bank_account_last4");
-  const phase = receipt ? 4 : run ? 3 : activity === "analyze" ? 2 : 1;
-
-  useEffect(() => {
-    const target = receipt ? receiptRef.current : activity === "analyze" || error ? workbenchRef.current : null;
-    if (!target) return;
-    const frame = requestAnimationFrame(() => moveTo(target));
-    return () => cancelAnimationFrame(frame);
-  }, [activity, error, receipt, run]);
-
-  return (
-    <main>
-      <header>
-        <a className="brand" href="#top">VED / 01</a><span>Evidence operations</span>
-        <span className="synthetic">Synthetic data only</span>
-      </header>
-      <nav className="journey" aria-label="Case progress"><span>Guided case</span><ol>
-        {stages.map((stage, index) => <li className={index + 1 < phase ? "done" : index + 1 === phase ? "active" : ""} aria-current={index + 1 === phase ? "step" : undefined} key={stage}>
-          <i>0{index + 1}</i><b>{stage}</b>
-        </li>)}
-      </ol></nav>
-      <section className={`hero ${activity || run ? "compact" : ""}`} id="top">
-        <div>
-          <p className="eyebrow">Vendor onboarding · evidence desk</p>
-          <h1>Let AI prepare the case.<br/><em>Keep judgment human.</em></h1>
-          <p className="lede">Three supplier documents disagree on a bank account. The system extracts evidence, refuses to hide the conflict, and exports only after a reasoned human decision.</p>
-          <button onClick={analyze} disabled={Boolean(activity)}>{activity === "analyze" ? "Preparing evidence…" : "Run evidence check"}</button>
-          <small className="action-note">One bounded model call · no autonomous approval</small>
-        </div>
-        <aside><p className="aside-title">Control boundary</p><ol>
-          <li><b>Model</b><span>Proposes fields + excerpts</span></li>
-          <li><b>Rules</b><span>Resolve evidence + route</span></li>
-          <li><b>Reviewer</b><span>Decides + approves</span></li>
-        </ol></aside>
-      </section>
-      <section className="packet">
-        <div className="section-title"><p>01 / Source packet</p><h2>What the model is allowed to see</h2></div>
-        <div className="documents">{packet.documents.map((document, index) =>
-          <article key={document.id}><span>0{index + 1}</span><h3>{document.title}</h3>
-            <p>{document.content.split("\n").slice(0, 3).join(" · ")}</p><small>{document.id}</small>
-          </article>
-        )}</div>
-      </section>
-      {(activity === "analyze" || run || error) && <section className="workbench" ref={workbenchRef} tabIndex={-1} aria-label="Case workspace">
-        {activity === "analyze" && !run && <div className="processing" role="status" aria-live="polite">
-          <div><p className="eyebrow">02 / Evidence preparation</p><h2 id="workbench-title">Building a grounded vendor record.</h2>
-            <p>The workspace moved with your action. The model can propose; deterministic checks still decide what needs review.</p></div>
-          <div className="processing-signal" aria-hidden="true"><span/><span/><span/></div>
-          <ol className="trace-lanes pending"><li><b>AI</b><span>One bounded request in flight</span></li>
-            <li><b>Rules</b><span>Waiting for model proposal</span></li><li><b>Human</b><span>Not reached</span></li></ol>
-        </div>}
-        {error && <div className="flow-error" role="alert"><div><p>Workflow interrupted</p><h2>{error}</h2></div>
-          <button onClick={run ? exportCase : analyze}>{run ? "Retry export" : "Retry evidence check"}</button></div>}
-        {run && <>
-        <div className="runtrace">
-          <div className="trace-head"><div><span className={run.trace.source}>{run.trace.source === "live" ? "Live model call" : run.trace.attempt === "failed" ? "Live attempt failed · replay" : "Replay fixture"}</span>
-            <b>{run.trace.source === "live" ? "completed" : run.trace.attempt === "failed" ? "fallback used" : "no provider call"}</b></div>
-            <p>{run.trace.source === "live" ? `${run.trace.model} · ${run.trace.latencyMs} ms · ${run.trace.usage?.input} in / ${run.trace.usage?.output} out` : run.trace.reason && traceReasons[run.trace.reason]}</p></div>
-          <ol className="trace-lanes"><li><b>AI</b><span>{run.trace.source === "live" ? `${run.trace.proposal.fields} fields · ${run.trace.proposal.candidates} candidates · ${run.trace.proposal.evidence} excerpts` : `Versioned fixture · ${run.trace.proposal.fields} fields`}</span></li>
-            <li><b>Rules</b><span>{run.trace.verifiedFields}/8 verified · {run.conflicts.length} conflict preserved · {run.route.replaceAll("_", " ")}</span></li>
-            <li><b>Human</b><span>{run.route === "needs_review" ? "Decision required · bank account" : run.route === "blocked" ? "Approval blocked" : "Ready for approval"}</span></li></ol>
-          <details className="inspector"><summary>Inspect this {run.trace.source === "live" ? "AI run" : "replay"}</summary><div>
-            <dl><dt>Provider call</dt><dd>{run.trace.provider || "Not called"}</dd><dt>Response status</dt><dd>{run.trace.status || "Replay"}</dd>
-              {run.trace.responseId && <><dt>Response ID</dt><dd className="trace-id" title={run.trace.responseId}>{run.trace.responseId}</dd></>}
-              {run.trace.requestId && <><dt>Request ID</dt><dd className="trace-id" title={run.trace.requestId}>{run.trace.requestId}</dd></>}</dl>
-            <dl><dt>Input boundary</dt><dd>{run.trace.documentIds.join(" · ")}</dd><dt>Proposal delta</dt><dd>{run.trace.ruleAddedCandidates ? `${run.trace.ruleAddedCandidates} candidate recovered by rules` : "No rule-added candidates"}</dd>
-              <dt>Verified facts</dt><dd>Structured proposal parsed · evidence inspected · deterministic route recorded</dd></dl>
-          </div></details>
-        </div>
-        <div className="case-summary"><div><p className="eyebrow">Evidence check complete</p>
-          <h2 id="workbench-title">Eight grounded fields. One decision is still yours.</h2>
-          <p>The system preserved the consequential exception instead of silently choosing a bank account.</p></div>
-          <dl><div><dt>Grounded fields</dt><dd>{run.extraction.fields.length}/8</dd></div><div><dt>Exceptions</dt><dd>{run.conflicts.length}</dd></div></dl>
-          <button onClick={() => moveTo(decisionRef.current)}>Review the exception ↓</button>
-        </div>
-        <div className="section-title"><p>02 / Prepared record</p><h2>Every value carries a receipt</h2></div>
-        <div className="fields">{run.extraction.fields.map((field) =>
-          <article className={run.conflicts.includes(field.name) ? "conflicted" : ""} key={field.name}>
-            <div><span>{labels[field.name]}</span>{run.conflicts.includes(field.name) && <strong>Exception</strong>}</div>
-            <h3>{field.candidates.map((candidate) => candidate.value).join(" / ") || "No grounded value"}</h3>
-            <details><summary>{field.candidates.reduce((count, candidate) => count + candidate.evidence.length, 0)} evidence receipt(s)</summary>
-              {field.candidates.flatMap((candidate, candidateIndex) => candidate.evidence.map((evidence, evidenceIndex) =>
-                <blockquote key={`${field.name}-${candidateIndex}-${evidenceIndex}`}>“{evidence.excerpt}”<cite>{evidence.documentId}</cite></blockquote>
-              ))}
-            </details>
-          </article>
-        )}</div>
-        {bank && <div className="decision" ref={decisionRef} tabIndex={-1}>
-          <div><p className="eyebrow">03 / Human gate</p><h2>The system will not choose.</h2>
-            <p>Both values are grounded. Select the authoritative source and leave an audit reason.</p>
-          </div>
-          <fieldset><legend>Account ending</legend>
-            {bank.candidates.map((candidate) => <label key={candidate.value}>
-              <input type="radio" name="bank" value={candidate.value} checked={selected === candidate.value} onChange={(event) => setSelected(event.target.value)}/>
-              <b>{candidate.value}</b><span>{candidate.evidence[0].documentId}</span>
-            </label>)}
-            <label className="reason">Review reason
-              <textarea value={reason} onChange={(event) => setReason(event.target.value)} rows={3}/>
-            </label>
-            <button onClick={exportCase} disabled={Boolean(activity) || Boolean(receipt)}>{activity === "export" ? "Exporting approved snapshot…" : "Approve exact record → mock export"}</button>
-          </fieldset>
-        </div>}
-        {receipt && <div className="receipt" ref={receiptRef} tabIndex={-1} role="status"><span>04 / External action</span>
-          <h2>{receipt.persisted ? "Approved snapshot persisted and exported." : "Preview export completed — database not configured."}</h2>
-          <p>{receipt.record.recordId} · {receipt.exportMode} · {new Date(receipt.approvedAt).toLocaleString()}</p>
-        </div>}
-        </>}
-      </section>}
-      <footer><p>One case. One model call. One consequential human decision.</p>
-        <a href="https://github.com/matiassemelman/vendor-evidence-desk" rel="noreferrer">Inspect the source ↗</a>
-      </footer>
-    </main>
-  );
+  const [scenario, setScenario] = useState<Scenario>("bank_conflict"), [run, setRun] = useState<Run>(), [approval, setApproval] = useState<Approval>(), [history, setHistory] = useState<CaseRevision>();
+  const [selected, setSelected] = useState("4421"), [reason, setReason] = useState("The onboarding profile is current; the sample invoice is explicitly stale."), [selectedWorker, setSelectedWorker] = useState(0);
+  const [activity, setActivity] = useState<"analyze" | "approve" | "reanalyze">(), [failed, setFailed] = useState<typeof activity>(), [error, setError] = useState("");
+  const workbench = useRef<HTMLElement>(null);
+  const send = async <T,>(body: object, next: typeof activity): Promise<T | undefined> => { setActivity(next); setFailed(undefined); setError(""); try { const response = await fetch("/api/case", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data; } catch (cause) { setFailed(next); setError(cause instanceof Error ? cause.message : "Request failed"); } finally { setActivity(undefined); } };
+  const analyze = async () => { setRun(undefined); setApproval(undefined); setHistory(undefined); const data = await send<Run>({ action: "analyze", caseId: packet.caseId, scenario }, "analyze"); if (data) { setRun(data); setSelected(data.revision.result.extraction.fields.at(-1)?.candidates[0]?.value || ""); setSelectedWorker(0); } };
+  const approve = async () => { if (!run) return; const data = await send<Approval>({ action: "approve_and_export", analysisCapability: run.analysisCapability, selected, reason }, "approve"); if (data) { setApproval(data); setRun({ ...run, revision: data.approvedRevision }); } };
+  const reanalyze = async () => { if (!run) return; const data = await send<Run>({ action: "analyze", caseId: packet.caseId, analysisCapability: run.analysisCapability, documentChange: { documentId: "DOC-INVOICE-001", variant: "align_profile" } }, "reanalyze"); if (data) { setHistory(data.supersededRevision); setRun(data); setApproval(undefined); setSelectedWorker(2); } };
+  useEffect(() => { if (!activity && !run && !error) return; workbench.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }, [activity, run, error]);
+  const revision = run?.revision, worker = revision?.workers[selectedWorker], sourceDocument = revision?.documents.find((document) => document.id === worker?.documentId), bank = revision?.result.extraction.fields.find((field) => field.name === "bank_account_last4"), canChange = Boolean(approval && revision?.documents.some((document) => document.id === "DOC-INVOICE-001" && document.content.includes("9921")));
+  return <main>
+    <header><a href="#top" className="brand">VED / CASE LAB</a><span>Evidence operations · completed-run view</span><span className="synthetic">Synthetic data only</span></header>
+    <section className="hero" id="top"><div><p className="eyebrow">Vendor onboarding / controlled AI workflow</p><h1>Watch three AI workers disagree.<br/><em>Then keep the decision human.</em></h1><p className="lede">Select a fixed supplier packet. Document analyzers propose local evidence in parallel; deterministic code preserves conflicts, and only a reviewer can approve the exact revision.</p></div><aside><b>Authority map</b><ol><li><span>01</span>AI proposes local facts</li><li><span>02</span>Rules merge and route</li><li><span>03</span>Human binds a revision</li></ol></aside></section>
+    <section className="lab"><div className="section-title"><p>01 / Case lab</p><h2>Choose the pressure test.</h2></div><div className="scenario-grid">{scenarios.map((item) => <label className={scenario === item.id ? "selected" : ""} key={item.id}><input type="radio" name="scenario" value={item.id} checked={scenario === item.id} onChange={() => setScenario(item.id)} disabled={Boolean(activity || run)}/><span>{item.id === "bank_conflict" ? "01" : item.id === "clean" ? "02" : "03"}</span><b>{item.label}</b><small>{item.note}</small></label>)}</div><div className="launch"><button onClick={analyze} disabled={Boolean(activity || run)}>{activity === "analyze" ? "Request pending…" : "Analyze selected packet →"}</button><p>3 allowlisted documents · 3 bounded analyzers · no tools · no autonomous approval</p></div></section>
+    {(activity || run || error) && <section className="workbench" ref={workbench}>
+      {activity && !run && <div className="pending" role="status"><p>Server request pending</p><h2>Waiting for one terminal response.</h2><span>No simulated worker steps or fake progress are shown.</span></div>}
+      {error && <div className="flow-error" role="alert"><div><p>Terminal request failure</p><h2>{error}</h2><span>{run ? "The completed analysis remains unchanged." : "Start a fresh case later; Analyze has no retry loop."}</span></div>{run && failed === "approve" && <button onClick={approve}>Retry exact approval/export</button>}</div>}
+      {run && revision && <>
+        <section className="theater"><div className="terminal-head"><div><span className={run.trace.source}>{run.trace.source === "live" ? "LIVE · COMPLETED" : "REPLAY · COMPLETED"}</span><p>Revision {short(revision.revisionId)} · {revision.result.route.replaceAll("_", " ")}</p></div><dl><div><dt>Transport</dt><dd>{run.trace.actualOutboundAttempts} call{run.trace.actualOutboundAttempts === 1 ? "" : "s"}</dd></div><div><dt>Latency</dt><dd>{run.trace.latencyMs} ms</dd></div><div><dt>Model</dt><dd>{revision.effectiveModel.id}</dd></div></dl></div>
+          <div className="trace-map"><article className="trace-node input"><small>INPUT SELECTED</small><b>{revision.scenario.replaceAll("_", " ")}</b><span>{revision.documents.length} fixed documents</span></article><i aria-hidden="true">→</i><div className="worker-stack"><p>WORKERS DISPATCHED</p>{revision.workers.map((item, index) => <button className={selectedWorker === index ? "active" : ""} onClick={() => setSelectedWorker(index)} key={item.documentId}><span>0{index + 1}</span><b>{item.documentId.replace("DOC-", "").replace("-001", "")}</b><small>{item.terminal === "reused" ? "REUSED · 0 calls" : `${item.source.toUpperCase()} · ${item.outboundAttempts} call`}</small></button>)}</div><i aria-hidden="true">→</i><article className="trace-node reducer"><small>DETERMINISTIC REDUCER</small><b>{revision.result.conflicts.length ? `${revision.result.conflicts.length} conflict preserved` : "No unresolved conflicts"}</b><span>Route: {revision.result.route.replaceAll("_", " ")}</span></article></div>
+          {worker && <div className="inspector"><div><p>Selected analyzer</p><h3>{worker.documentId}</h3><dl><dt>Terminal</dt><dd>{worker.terminal}</dd><dt>Source</dt><dd>{worker.source}</dd><dt>Outbound attempts</dt><dd>{worker.outboundAttempts}</dd><dt>Input identity</dt><dd title={worker.inputHash}>{short(worker.inputHash)}</dd>{worker.provider && <><dt>Response</dt><dd title={worker.provider.responseId}>{short(worker.provider.responseId)}</dd><dt>Tokens</dt><dd>{worker.provider.usage?.input} in / {worker.provider.usage?.output} out</dd></>}</dl></div><div><p>Local evidence proposed</p>{worker.extraction.fields.filter((field) => field.candidates.length).map((field) => <article key={field.name}><b>{labels[field.name]}</b><span>{field.candidates.map((candidate) => candidate.value).join(" / ")}</span><small>{field.candidates.flatMap((candidate) => candidate.evidence).map((evidence) => `“${evidence.excerpt}”`).join(" · ")}</small></article>)}</div><ol><p>Immutable event history</p>{revision.analysisEvents.map((event) => <li className={event.type === "worker_terminal" && event.facts.documentId === worker.documentId ? "active" : ""} key={event.sequence}><span>0{event.sequence}</span><b>{event.type.replaceAll("_", " ")}</b><small>{event.source}</small></li>)}</ol></div>}
+          {sourceDocument && <details className="source-input"><summary>Inspect exact source input</summary><pre>{sourceDocument.content}</pre></details>}
+        </section>
+        {history && <section className="history"><div><p>Prior revision / immutable history</p><h2>Approval retained. Future validity superseded.</h2><span>{short(history.revisionId)} · export receipt {history.lifecycle.export?.receiptId}</span></div><div><b>SUPERSEDED</b><p>The invoice changed; the historical mock export was not undone.</p></div></section>}
+        <section className="record"><div className="section-title"><p>02 / Reduced record</p><h2>Eight fields, evidence attached.</h2></div><div className="fields">{revision.result.extraction.fields.map((field) => <article className={revision.result.conflicts.includes(field.name) ? "conflicted" : ""} key={field.name}><div><span>{labels[field.name]}</span>{revision.result.conflicts.includes(field.name) && <b>HUMAN GATE</b>}</div><h3>{field.candidates.map((candidate) => candidate.value).join(" / ") || "No grounded value"}</h3><details><summary>Inspect {field.candidates.reduce((sum, item) => sum + item.evidence.length, 0)} receipt(s)</summary>{field.candidates.flatMap((candidate) => candidate.evidence).map((evidence, index) => <blockquote key={index}>“{evidence.excerpt}”<cite>{evidence.documentId}</cite></blockquote>)}</details></article>)}</div></section>
+        {!approval && !revision.parentRevisionId && revision.result.route !== "blocked" && bank && <section className="decision"><div><p>03 / Human authority</p><h2>The system stops here.</h2><span>Select a grounded bank value and bind your reason to this exact revision.</span></div><fieldset><legend>Authoritative account</legend>{bank.candidates.map((candidate) => <label key={candidate.value}><input type="radio" name="bank" checked={selected === candidate.value} onChange={() => setSelected(candidate.value)}/><b>{candidate.value}</b><small>{candidate.evidence[0].documentId}</small></label>)}<label className="reason">Decision reason<textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)}/></label><button disabled={Boolean(activity)} onClick={approve}>{activity === "approve" ? "Binding decision…" : "Approve revision + mock export →"}</button></fieldset></section>}
+        {approval && <section className="lifecycle"><div><p>04 / Review lifecycle</p><h2>Human decision bound to revision.</h2><span>{approval.approvalReceipt.receiptId} · Mock export recorded · {approval.persisted ? "PostgreSQL" : "preview memory"}</span></div>{canChange && <button disabled={Boolean(activity)} onClick={reanalyze}>{activity === "reanalyze" ? "Analyzing changed invoice…" : "Change invoice → re-analyze one document"}</button>}</section>}
+      </>}
+    </section>}
+    <footer><p>Three proposals. One deterministic reducer. One accountable human decision.</p><a href="https://github.com/matiassemelman/vendor-evidence-desk" rel="noreferrer">Inspect the source ↗</a></footer>
+  </main>;
 }
