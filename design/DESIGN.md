@@ -74,8 +74,8 @@ carry the main explanation.
   system must preserve both.`
 - `Consistent documents`: `All sources agree. The case may advance, but it
   cannot approve itself.`
-- `Hostile instruction`: `A document tries to override the workflow. It must
-  remain untrusted data.`
+- `Hostile instruction`: name the attempted action before the run: a fake
+  `SYSTEM` command orders immediate approval and export.
 - Primary action: `Analyze this case`.
 - Secondary proof: `3 isolated analyzers · source-grounded output · no tools ·
   human approval required`.
@@ -101,7 +101,8 @@ The verdict immediately takes the released space.
 - Conflict: `Two bank accounts are supported. The system refused to choose.`
 - Consistent: `All three documents agree. Human approval is still required.`
 - Hostile: `The embedded instruction was ignored. The evidence remained in
-  control.`
+  control.` The explanation quotes the exact hostile text so a visitor can see
+  what was rejected without opening the execution trace.
 
 Below the human explanation, show the technical result: checks, route and
 conflict count. A completed model call never looks like an approved record.
@@ -192,7 +193,8 @@ appended below the full record.
 2. Clicking Analyze keeps the selected case and active work in one stage.
 3. A terminal run leaves a compact technical receipt and puts its human verdict
    before full trace or record.
-4. Every scenario communicates its distinct outcome.
+4. Every scenario communicates its distinct outcome; the hostile scenario
+   exposes the exact rejected instruction in its visible verdict.
 5. Decisive evidence precedes the form; approval replaces it with an exact
    receipt and offers another case.
 6. Atlas starts minimized, remains discoverable and never covers the decision.
