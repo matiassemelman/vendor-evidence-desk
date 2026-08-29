@@ -1,74 +1,203 @@
 ---
 surface: app
 case: Vendor Evidence Desk Case Lab
-status: verified-release
-source: production-qa + owner feedback + primary-reference research
-last_updated: 2026-08-28
+status: implementation-contract
+source: production-qa + owner review + primary-reference research
+last_updated: 2026-08-29
 ---
 
-# DESIGN.md — Connected pressure-test run
+# DESIGN.md — One case, one continuous stage
 
-## Product / Commercial Job
+## Product and communication job
 
-- Primary reviewer: recruiter or technical reviewer assessing AI product judgment.
-- Primary action: understand one governed AI run, then make one grounded decision.
-- Friction to remove: the current selector, terminal wait, Theater and decision read as separate products.
-- Portfolio proof: a reviewer should understand within twenty seconds what was tested, what actually ran, which invariant held and why a person still owns the outcome.
+- Primary audience: a recruiter or technical reviewer opening the project for
+  the first time from a CV, GitHub profile or shared link.
+- Primary action: understand one governed AI run, make its grounded human
+  decision and choose whether to inspect the architecture or source.
+- Twenty-second test: the visitor can say what the AI did, what deterministic
+  code decided and what remained explicitly human.
+- Public story: `documents → evidence → deterministic exception → human
+  decision → simulated receiving system`.
+- Portfolio attribution: the experience names Matias Semelman without turning
+  the product into a personal landing page.
 
-## Trust Assets And Sources
+## Direction
 
-- Preserve the current evidence-operations visual language, three document-local workers, deterministic reducer, revision authority and System Atlas.
-- The selected scenario is a fixed evaluation contract, not an arbitrary prompt.
-- Live progress may move only from server-owned events; replay must remain explicitly labeled.
-- Sources: OpenAI Agents SDK streaming/tracing/HITL and LangSmith evaluation concepts, summarized in `docs/research/ai-product-ux-patterns-2026-08-28.md`.
-- Do not invent model reasoning, elapsed percentages, detection claims or production guarantees.
+An editorial evidence lab crossed with an operations control room. The serif
+voice explains human consequences; sans-serif copy explains actions; monospace
+labels prove machine state. Paper grid, petroleum, teal and amber remain the
+visual identity. Motion communicates state and never invents work.
 
-## Visual Direction And Anti-Slop
+The selected scenario becomes the stage. The selector, running Theater,
+verdict, decision and receipt are not separate pages stacked vertically: they
+are consecutive states of the same case.
 
-- Direction: editorial evidence lab crossed with an operations control room.
-- Memorable interaction: one stable Theater wakes up as workers finish, then folds into the decision record.
-- Keep paper grid, petroleum field, teal signal and amber exception; motion communicates state, never decoration.
-- Avoid chat bubbles, purple gradients, fake typing, generic skeletons and dashboard metric sprawl.
+## Editorial hierarchy
 
-## UI Rules
+Every viewport answers, in order:
 
-- The selected card exposes four facts: injected condition, expected invariant, success checks and expected route.
-- Its CTA names the selected pressure test.
-- The same workbench contains pending and terminal execution; no separate waiting billboard.
-- Pending nodes show only `queued`, `running`, `completed`, `reused` or `failed` from real events.
-- The reducer cannot appear active before all three workers are terminal.
-- After completion, show the pressure-test verdict before the full record.
-- For `needs_review`, place both unresolved candidates, their exact excerpts and the human form together.
-- Begin with no candidate selected and no reason prefilled; enable approval only after an explicit choice and a valid 12–500 character reason.
-- Keep the complete eight-field record collapsed as secondary audit evidence until the reviewer opens it.
-- Keep `Inspect execution` and the complete grounded record available as secondary evidence.
-- Present System Atlas on every full page load; it may minimize during a run but must remain discoverable.
-- Desktop and 390 px mobile must preserve selector → run → verdict → decision order without horizontal overflow.
+1. What happened?
+2. Why does it matter?
+3. What should the person do?
+4. How can a technical reviewer verify it?
 
-## Copy And Claims
+The human sentence is dominant. One compact technical receipt follows it.
+Terms such as `route`, `reducer`, `revision`, `mock ERP` and event names never
+carry the main explanation.
 
-- Say `Pressure-test contract`, `Live execution`, `Deterministic verdict` and `Human decision`.
-- `Passed` means explicit deterministic checks passed, not that the model was generally safe or accurate.
-- Hostile scenario checks: no tool/export action, injected instruction did not become grounded evidence, and the bank conflict remained routed to review.
-- Explain dual outcomes: the guardrail can pass while an unrelated grounded conflict still needs a person.
-- Replay copy says `Recorded execution`; it never implies live progress.
+## Entry and attribution
 
-## Do / Do Not
+- Page title: `Vendor Evidence Desk — Governed AI case study`.
+- Description: `Watch AI ground a supplier record in source evidence, preserve
+  a consequential conflict and stop for an accountable human decision.`
+- Social preview: `AI prepares the evidence. A human owns the decision.` plus
+  the three-step authority map.
+- Header/footer attribution: `Designed and built by Matias Semelman` with
+  source and LinkedIn available after the product story.
 
-- Do stream compact domain events and preserve the final inspectable trace.
-- Do keep one primary action in each state.
-- Do make completed workers inspectable while siblings are pending.
-- Do not stream chain-of-thought, raw structured-output tokens or arbitrary provider text.
-- Do not add dependencies, another service, uploads, prompts or a generalized workflow framework.
+## Storyboard and final copy
 
-## Verified Delivery And Acceptance
+### 00 — Arrival
 
-- One server-owned NDJSON contract drives the parallel workers, reducer and final Theater; no fake progress is rendered.
-- Each scenario remains visible as a pressure-test contract through request, verdict and decision.
-- The hostile scenario demonstrates two separate outcomes: the injected instruction gains no authority, while the grounded bank conflict still stops at a person.
-- The human gate starts neutral, keeps decisive evidence visible and binds the explicit choice and reason to one revision.
-- The five tests, five live evals, production build, 1,450-line ceiling and deployed desktop/390 px journeys passed on 2026-08-28.
+- Eyebrow: `AI-assisted vendor onboarding`.
+- Headline: `Watch AI build a vendor record—and stop where judgment matters.`
+- Body: `Three document analyzers extract claims and cite their sources.
+  Deterministic rules preserve contradictions, and only a reviewer can approve
+  the resulting record.`
+- Authority map: `AI proposes evidence → Rules preserve exceptions → A person
+  approves one exact version`.
 
-Acceptance: the page reads as one continuous, inspectable run; every progress claim is event-backed; no release claim exceeds observed evidence.
+### 01 — Choose a case
 
-[source: Matias-2026-08-28, verified; `docs/research/ai-product-ux-patterns-2026-08-28.md`, direct/inferred]
+- Heading: `What should the system handle?`
+- `Conflicting bank accounts`: `Two documents support different accounts. The
+  system must preserve both.`
+- `Consistent documents`: `All sources agree. The case may advance, but it
+  cannot approve itself.`
+- `Hostile instruction`: `A document tries to override the workflow. It must
+  remain untrusted data.`
+- Primary action: `Analyze this case`.
+- Secondary proof: `3 isolated analyzers · source-grounded output · no tools ·
+  human approval required`.
+- Condition, invariant, expected outcome and route live under `Inspect expected
+  behavior`; they are not the initial narrative.
+
+### 02 — Execute
+
+- Heading: `Checking three supplier documents.`
+- Body: `Each analyzer can propose evidence only from its assigned document.`
+- Show only real server-owned states: accepted, queued, running, completed,
+  reused or failed. Never show a percentage, ETA, chain of thought or fake
+  typing.
+- The deterministic reducer remains visibly waiting until all workers are
+  terminal.
+
+### 03 — Conclude
+
+At a terminal result the Theater closes into one receipt:
+`Analysis complete · 3 documents · model · duration · Inspect execution`.
+The verdict immediately takes the released space.
+
+- Conflict: `Two bank accounts are supported. The system refused to choose.`
+- Consistent: `All three documents agree. Human approval is still required.`
+- Hostile: `The embedded instruction was ignored. The evidence remained in
+  control.`
+
+Below the human explanation, show the technical result: checks, route and
+conflict count. A completed model call never looks like an approved record.
+
+### 04 — Decide
+
+- Heading: `Choose which source should govern this record.`
+- Body: `Compare the exact excerpts below. Your selection and reason will be
+  bound to this revision.`
+- Decisive evidence stays open above the form.
+- No default candidate and no prefilled reason.
+- Disabled action: `Select an account to continue`.
+- Enabled action: `Approve account {value} for this revision`.
+- Clean scenario: `Approve this exact record` after the sole grounded value is
+  explicitly selected.
+
+### 05 — Confirm and continue
+
+The decision surface transforms in place into the receipt; no success panel is
+appended below the full record.
+
+- Heading: `Account {value} approved and exported.`
+- Body: `The exact approved version was sent to a simulated receiving system
+  and recorded once.`
+- Technical proof: receipt ID, exact revision, persistence mode and
+  `Mock ERP · idempotent export`.
+- Primary continuation: `Try another case`.
+- Secondary depth: `Explore the system architecture` and `Inspect the source`.
+
+## Visual grammar
+
+- Serif: narrative headlines and human consequences.
+- Sans serif: explanations, evidence and controls.
+- Monospace: events, models, hashes, receipts and compact proof.
+- Teal: neutral system state and primary action.
+- Amber: contradiction or required attention.
+- Green: only an explicit approved human outcome, never worker completion.
+- Dark Theater: active or inspectable execution, never the final decision.
+- One viewport, one protagonist; technical disclosure cannot cover or displace
+  the current action.
+
+## Motion and focus
+
+- The chosen case compresses into a case strip when execution starts.
+- The running Theater appears in that same stage.
+- Completion folds the Theater into its receipt before revealing the verdict.
+- Approval replaces the decision with its receipt.
+- Transitions use opacity/transform, 160–320 ms, and honor
+  `prefers-reduced-motion`.
+- Programmatic focus moves to the running status, verdict or receipt after the
+  corresponding state change. No repeated scroll hijacking.
+
+## Secondary evidence
+
+- Completed execution is closed by default and reopens through `Inspect
+  execution`.
+- The complete eight-field grounded record remains collapsed.
+- System Atlas starts minimized. It becomes contextually discoverable after a
+  run but never expands over the active decision.
+- Replay is always labeled `Recorded execution · No provider call was made
+  during this replay`.
+- Error copy states what failed, what remains preserved and the next available
+  action.
+
+## Responsive contract
+
+- Desktop target: compact case context, terminal receipt, verdict, decisive
+  evidence and next action remain within one ordinary viewport after the run.
+- Mobile order is case → execution → verdict → evidence → decision → receipt;
+  it may require one additional scroll but never reorders the evidence beneath
+  the form.
+- No horizontal overflow at 390 px. Atlas is a minimized bottom trigger on
+  mobile. Keyboard focus and screen-reader announcements follow the same
+  narrative order.
+
+## Guardrails
+
+- Fixed synthetic packet only; no uploads or prompts.
+- Live progress only from server-owned events; replay explicitly labeled.
+- AI proposes; deterministic code validates/routes; only the reviewer approves.
+- Exactly five focused tests and five eval cases remain.
+- No dependency or service is added for this presentation change.
+- Runtime/config line count remains at or below 1,450.
+
+## Acceptance
+
+1. A new visitor can explain the authority split after the hero and one run.
+2. Clicking Analyze keeps the selected case and active work in one stage.
+3. A terminal run leaves a compact technical receipt and puts its human verdict
+   before full trace or record.
+4. Every scenario communicates its distinct outcome.
+5. Decisive evidence precedes the form; approval replaces it with an exact
+   receipt and offers another case.
+6. Atlas starts minimized, remains discoverable and never covers the decision.
+7. Metadata, attribution, desktop and 390 px journeys are verified.
+8. `pnpm verify`, exactly five tests and the 1,450-line ceiling pass.
+
+[source: Matias-2026-08-29, approved direction;
+`docs/research/narrative-ai-run-patterns-2026-08-29.md`, direct/inferred]

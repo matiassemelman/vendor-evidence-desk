@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#52726f" stroke-opacity=".08"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#edf3f1"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <path d="M54 64H1146M54 558H1146" stroke="#122f35"/>
+  <text x="54" y="42" fill="#087579" font-family="monospace" font-size="13" font-weight="700" letter-spacing="2">VENDOR EVIDENCE DESK / GOVERNED AI CASE STUDY</text>
+  <text x="54" y="158" fill="#122f35" font-family="Georgia,serif" font-size="72" letter-spacing="-3">AI prepares the evidence.</text>
+  <text x="54" y="232" fill="#087579" font-family="Georgia,serif" font-size="72" font-style="italic" letter-spacing="-3">A human owns the decision.</text>
+  <text x="58" y="287" fill="#38575b" font-family="Arial,sans-serif" font-size="20">Three document analyzers. Deterministic rules. One accountable approval.</text>
+  <g transform="translate(54 345)">
+    <rect width="1092" height="145" fill="#f8faf7" stroke="#122f35"/>
+    <path d="M364 0V145M728 0V145" stroke="#b9cbca"/>
+    <g fill="#087579" font-family="monospace" font-size="12" font-weight="700"><text x="26" y="34">01 / AI</text><text x="390" y="34">02 / RULES</text><text x="754" y="34">03 / HUMAN</text></g>
+    <g fill="#122f35" font-family="Georgia,serif" font-size="27"><text x="26" y="76">Proposes evidence</text><text x="390" y="76">Preserve exceptions</text><text x="754" y="76">Approves one version</text></g>
+    <g fill="#61777a" font-family="Arial,sans-serif" font-size="15"><text x="26" y="108">Every claim keeps its source.</text><text x="390" y="108">Conflicts are never guessed away.</text><text x="754" y="108">Judgment remains accountable.</text></g>
+  </g>
+  <text x="54" y="598" fill="#61777a" font-family="monospace" font-size="12">DESIGNED AND BUILT BY MATIAS SEMELMAN</text>
+  <text x="1146" y="598" text-anchor="end" fill="#087579" font-family="monospace" font-size="12">SYNTHETIC DATA ONLY</text>
+</svg>

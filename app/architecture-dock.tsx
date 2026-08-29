@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function ArchitectureDock({ completed, busy }: { completed: boolean; busy: boolean }) {
-  const [expanded, setExpanded] = useState(true), [open, setOpen] = useState(false), [mounted, setMounted] = useState(false), [contextual, setContextual] = useState(false);
+  const [expanded, setExpanded] = useState(false), [open, setOpen] = useState(false), [mounted, setMounted] = useState(false), [contextual, setContextual] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!completed || sessionStorage.getItem("ved-atlas-after-run")) return;

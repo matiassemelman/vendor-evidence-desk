@@ -1,12 +1,12 @@
 # Vendor Evidence Desk
 
-Watch three document analyzers prepare an evidence-backed vendor record, preserve consequential conflicts, and stop for an accountable human decision.
+Watch AI build an evidence-backed vendor record, preserve a consequential conflict, and stop where human judgment must begin.
 
 [Open the live demo](https://vendor-evidence-desk.vercel.app/) · [Follow the architecture walkthrough](https://vendor-evidence-desk.vercel.app/architecture) · [Read the evaluation design](docs/EVALS.md) · [Inspect model routing](docs/MODEL_ROUTING.md) · [See the UX contract](design/DESIGN.md)
 
-This compact AI/full-stack case study accepts one synthetic, allowlisted supplier packet—not uploads or user prompts. One bounded analyzer processes each document in parallel. A deterministic reducer validates exact excerpts, merges equivalent values, and keeps the `4421` / `9921` bank conflict unresolved.
+This compact AI/full-stack case study accepts one synthetic, allowlisted supplier packet—not uploads or user prompts. Three bounded analyzers process its documents in parallel. Deterministic code validates exact excerpts, merges equivalent values, and keeps the `4421` / `9921` bank conflict unresolved.
 
-The Case Lab presents each scenario as a pressure-test contract, then streams server-owned fork-and-join events into the same Theater that preserves the completed trace. A reviewer sees real worker terminals—not simulated progress—before the deterministic verdict leads directly to the unresolved evidence and human decision. The full grounded record and architecture remain available as progressive disclosure.
+The Case Lab is one continuous stage: choose a scenario, watch real server-owned events arrive, read the system's plain-language verdict, compare the exact source evidence, and approve only the revision you intend. After completion, the technical execution folds into an inspectable receipt so it never outranks the human decision. The full grounded record and architecture remain available as progressive disclosure.
 
 ![Vendor Evidence Desk product overview](docs/product-overview.png)
 
@@ -32,15 +32,16 @@ pnpm release-db   # isolated migration/CAS/idempotency rehearsal
 
 ## Verified release evidence
 
-On 2026-08-28:
+Release evidence current through 2026-08-29:
 
 - 5/5 deterministic tests passed; lint, typecheck and production build passed.
-- 5/5 live eval routes and calibrated judge verdicts passed; all 15 document analyzers completed live.
+- On 2026-08-28, 5/5 live eval routes and calibrated judge verdicts passed; all 15 document analyzers completed live.
 - Extraction requested `gpt-4.1-mini` and received `gpt-4.1-mini-2025-04-14`; the independently calibrated judge remained on `gpt-5.5-2026-04-23`.
 - Measured model cost fell 95.2% for the three-worker product path and 73.8% for the full eval suite versus the verified all-`gpt-5.5` baseline.
 - An isolated Neon schema passed migration rollback, legacy fidelity, concurrent successor CAS, exact approval/export idempotency and cleanup.
-- Production UX QA confirmed event-backed intermediate states, always-visible decision evidence, a neutral human gate, approval/export and zero horizontal overflow at desktop and 390 px.
-- The tracked product implementation contains 1,447 non-empty executable/config lines under its 1,450-line hard review ceiling; generated architecture documentation is counted separately.
+- Production-build UX QA confirmed event-backed intermediate states, scenario-specific verdicts, evidence-first decisions, approval/export receipts, a complete restart path and zero horizontal overflow at desktop and 390 px.
+- Visual-direction review scored the final journey 95/100: the execution receipt, verdict and complete decision fit the terminal desktop viewport; mobile establishes meaning before the action begins.
+- The tracked product implementation contains 1,450 non-empty executable/config lines at its hard review ceiling; generated architecture documentation is counted separately.
 
 ## Engineering choices
 
