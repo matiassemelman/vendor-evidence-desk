@@ -70,4 +70,4 @@ The [interactive architecture walkthrough](https://vendor-evidence-desk.vercel.a
 
 ## Limits
 
-One known English document shape, no OCR, no authentication, no arbitrary uploads, no real ERP, and no claim of scale or customer adoption. The platform rate-limit rule was verified but is intentionally disabled during owner testing; the OpenAI project hard spend cap remains active.
+One known English document shape, no OCR, no authentication, no arbitrary uploads, no real ERP, and no claim of scale or customer adoption. The platform rate-limit rule allows four POST requests to `/api/case` per IP every ten minutes and then denies the next request with `403`; the OpenAI project hard spend cap remains active.
